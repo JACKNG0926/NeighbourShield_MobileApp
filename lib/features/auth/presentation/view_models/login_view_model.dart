@@ -38,8 +38,8 @@ class LoginViewModel extends ChangeNotifier {
         email: normalizedEmail,
         password: password,
       );
-    } catch (_) {
-      errorMessage = 'Unable to sign in. Please try again.';
+    } catch (e) {
+      errorMessage = e.toString().replaceAll('Exception: ', '');
       return null;
     } finally {
       isLoading = false;
