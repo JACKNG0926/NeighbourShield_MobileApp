@@ -4,6 +4,7 @@ import '../../../../app/app_theme.dart';
 import '../../../home/presentation/pages/home_page.dart';
 import '../../data/auth_repository.dart';
 import '../view_models/login_view_model.dart';
+import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -217,7 +218,9 @@ class _LoginPageState extends State<LoginPage> {
                           const Text("Don't have an account? "),
                           TextButton(
                             onPressed: () {
-                              _showMessage('Registration will be added later.');
+                              Navigator.of(context).push(
+                                MaterialPageRoute(builder: (_) => RegisterPage()),
+                              );
                             },
                             child: const Text('Create account'),
                           ),

@@ -1,12 +1,85 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../../../../app/app_theme.dart';
 import '../../../auth/presentation/pages/login_page.dart';
+import '../../data/incident_repository.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   final String email;
 
   const HomePage({super.key, required this.email});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final IncidentRepository _incidentRepository = IncidentRepository();
+  bool _isSendingSos = false;
+
+  Future<void> _handleSosTrigger() async {
+    setState(() {
+      _isSendingSos = true;
+    });
+
+    try {
+      // 1. Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Location services are disabled on your device.');
+      }
+
+      // 2. Check and request location permissions
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Location permissions are denied.');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('Location permissions are permanently denied.');
+      }
+
+      // 3. Get actual GPS coordinates
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      // 4. Send to Django backend
+      await _incidentRepository.sendSos(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('SOS Alert sent successfully! Help is on the way.'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSendingSos = false;
+        });
+      }
+    }
+  }
 
   void _showSosConfirmation(BuildContext context) {
     showDialog<void>(
@@ -20,8 +93,8 @@ class HomePage extends StatelessWidget {
           ),
           title: const Text('Emergency SOS'),
           content: const Text(
-            'This is a demo. No emergency alert will be sent yet. '
-            'The real SOS service will be connected later.',
+            'Are you sure you want to trigger an emergency alert? '
+                'This will share your current location with local responders.',
           ),
           actions: [
             TextButton(
@@ -34,12 +107,9 @@ class HomePage extends StatelessWidget {
               ),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Demo only — no SOS was sent.')),
-                );
+                _handleSosTrigger();
               },
-              child: const Text('Got it'),
+              child: const Text('TRIGGER ALERT'),
             ),
           ],
         );
@@ -108,7 +178,7 @@ class HomePage extends StatelessWidget {
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          email,
+                          widget.email,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: AppTheme.mutedColor,
@@ -148,9 +218,7 @@ class HomePage extends StatelessWidget {
                     SizedBox(
                       height: 62,
                       child: FilledButton.icon(
-                        onPressed: () {
-                          _showSosConfirmation(context);
-                        },
+                        onPressed: _isSendingSos ? null : () => _showSosConfirmation(context),
                         style: FilledButton.styleFrom(
                           backgroundColor: AppTheme.dangerColor,
                           foregroundColor: Colors.white,
@@ -158,23 +226,22 @@ class HomePage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        icon: const Icon(Icons.sos, size: 30),
-                        label: const Text(
+                        icon: _isSendingSos
+                            ? const SizedBox.shrink()
+                            : const Icon(Icons.sos, size: 30),
+                        label: _isSendingSos
+                            ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3)
+                        )
+                            : const Text(
                           'SEND SOS',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Demo only — this button does not send an alert.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppTheme.mutedColor,
                       ),
                     ),
                   ],
@@ -208,8 +275,7 @@ class HomePage extends StatelessWidget {
                           ),
                           SizedBox(height: 5),
                           Text(
-                            'Incident information will appear here '
-                            'after connecting the backend.',
+                            'Location access is required for emergency services to find you quickly.',
                             style: TextStyle(
                               fontSize: 12,
                               color: AppTheme.mutedColor,
