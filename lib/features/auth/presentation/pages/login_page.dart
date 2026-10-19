@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/app_theme.dart';
-import '../../../home/presentation/pages/home_page.dart';
+import '../../../../core/session/app_session.dart';
 import '../../data/auth_repository.dart';
 import '../view_models/login_view_model.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({super.key, required this.session});
+
+  final AppSession session;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -16,7 +18,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   late final LoginViewModel _viewModel;
 
-  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
   bool _hidePassword = true;
@@ -30,23 +32,22 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     _viewModel.dispose();
     super.dispose();
   }
 
   Future<void> _handleSignIn() async {
-    final email = await _viewModel.signIn(
-      email: _emailController.text,
+    final user = await _viewModel.signIn(
+      username: _usernameController.text,
       password: _passwordController.text,
     );
 
-    if (!mounted || email == null) return;
+    if (!mounted || user == null) return;
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => HomePage(email: email)),
-    );
+    // Use the role and profile returned by Django instead of assuming Resident.
+    widget.session.signIn(user);
   }
 
   void _showMessage(String message) {
@@ -119,16 +120,16 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 26),
                       const Text(
-                        'Email address',
+                        'Username',
                         style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 9),
                       TextField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
+                        controller: _usernameController,
+                        keyboardType: TextInputType.text,
                         decoration: const InputDecoration(
-                          hintText: 'you@example.com',
-                          prefixIcon: Icon(Icons.email_outlined),
+                          hintText: 'Enter your username',
+                          prefixIcon: Icon(Icons.person_outline),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -219,7 +220,10 @@ class _LoginPageState extends State<LoginPage> {
                           TextButton(
                             onPressed: () {
                               Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => RegisterPage()),
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      RegisterPage(session: widget.session),
+                                ),
                               );
                             },
                             child: const Text('Create account'),

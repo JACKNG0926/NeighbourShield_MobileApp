@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
+
 import '../../data/auth_repository.dart';
+import '../../models/user_session.dart';
 
 class RegisterViewModel extends ChangeNotifier {
   RegisterViewModel(this._authRepository);
@@ -9,7 +11,7 @@ class RegisterViewModel extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
 
-  Future<String?> register({
+  Future<UserSession?> register({
     required String username,
     required String email,
     required String firstName,
@@ -20,14 +22,13 @@ class RegisterViewModel extends ChangeNotifier {
   }) async {
     errorMessage = null;
 
-    // Basic validation
-    if (username.isEmpty || email.isEmpty || password.isEmpty) {
+    if (username.trim().isEmpty || email.trim().isEmpty || password.isEmpty) {
       errorMessage = 'Username, email, and password are required.';
       notifyListeners();
       return null;
     }
 
-    if (!email.contains('@')) {
+    if (!email.trim().contains('@')) {
       errorMessage = 'Please enter a valid email address.';
       notifyListeners();
       return null;
@@ -47,7 +48,7 @@ class RegisterViewModel extends ChangeNotifier {
         password: password,
       );
     } catch (e) {
-      errorMessage = e.toString().replaceAll('Exception: ', '');
+      errorMessage = e.toString().replaceFirst('Exception: ', '');
       return null;
     } finally {
       isLoading = false;
