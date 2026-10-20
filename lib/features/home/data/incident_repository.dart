@@ -1,9 +1,11 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../app/api_config.dart';
 
 class IncidentRepository {
-  final String baseUrl = 'http://192.168.0.5:8000/api';
+  final String baseUrl = ApiConfig.baseUrl;
 
   Future<void> sendSos(double latitude, double longitude) async {
     final prefs = await SharedPreferences.getInstance();
@@ -24,6 +26,9 @@ class IncidentRepository {
         'latitude': double.parse(latitude.toStringAsFixed(6)),
         'longitude': double.parse(longitude.toStringAsFixed(6)),
       }),
+    ).timeout(
+      const Duration(seconds: 10),
+      onTimeout: () => throw Exception('Connection timed out. Please check backend server.'),
     );
 
     if (response.statusCode != 201) {

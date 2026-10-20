@@ -1,43 +1,44 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-class AuthRepository {
-  // Use your computer's LAN IP where Django is running
-  final String baseUrl = 'http://192.168.0.5:8000/api';
+import '../../../app/api_config.dart';
+import '../models/user_session.dart';
 
-  Future<String> signIn({
-    required String email,
+class AuthRepository {
+  final String baseUrl = ApiConfig.baseUrl;
+
+  Future<UserSession> signIn({
+    required String username,
     required String password,
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/auth/login/'),
       headers: {'Content-Type': 'application/json'},
-      // Django's TokenLoginView expects 'username', so we map the email input to it
       body: jsonEncode({
-        'username': email,
+        // Django TokenLoginView authenticates by username, not email.
+        'username': username.trim(),
         'password': password,
       }),
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final token = data['token'];
-
-      // Save the token locally for future API requests
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', token);
-
-      // Return the username provided by the Django MobileProfileSerializer
-      return data['user']['username'] ?? email;
-    } else if (response.statusCode == 400) {
-      throw Exception('Invalid username or password.');
-    } else {
-      throw Exception('Server error. Please try again later.');
+      return _saveTokenAndReadUser(response.body);
     }
+
+    if (response.statusCode == 400) {
+      throw Exception(
+        _readError(response.body) ?? 'Invalid username or password.',
+      );
+    }
+
+    throw Exception(
+      'Server error (${response.statusCode}). Please try again later.',
+    );
   }
 
-  Future<String> register({
+  Future<UserSession> register({
     required String username,
     required String email,
     required String firstName,
@@ -50,37 +51,71 @@ class AuthRepository {
       Uri.parse('$baseUrl/auth/register/'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'username': username,
-        'email': email,
-        'first_name': firstName,
-        'last_name': lastName,
-        'phone_number': phone,
-        'unit_address': address,
+        'username': username.trim(),
+        'email': email.trim(),
+        'first_name': firstName.trim(),
+        'last_name': lastName.trim(),
+        'phone_number': phone.trim(),
+        'unit_address': address.trim(),
         'password': password,
       }),
     );
 
     if (response.statusCode == 201) {
-      final data = jsonDecode(response.body);
-      final token = data['token'];
-
-      // Save the token locally
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', token);
-
-      return data['user']['username'] ?? username;
-    } else if (response.statusCode == 400) {
-      // Django DRF returns 400 with a map of field errors (e.g., {"username": ["A user with that username already exists."]})
-      final errorData = jsonDecode(response.body) as Map<String, dynamic>;
-      final firstErrorKey = errorData.keys.first;
-      final errorMessage = errorData[firstErrorKey][0];
-      throw Exception('$firstErrorKey: $errorMessage');
-    } else {
-      throw Exception('Server error. Please try again later.');
+      return _saveTokenAndReadUser(response.body);
     }
+
+    if (response.statusCode == 400) {
+      throw Exception(
+        _readError(response.body) ?? 'Please check your registration details.',
+      );
+    }
+
+    throw Exception(
+      'Server error (${response.statusCode}). Please try again later.',
+    );
   }
 
-  // Helper to retrieve the token later for the SOS button
+  Future<UserSession> _saveTokenAndReadUser(String responseBody) async {
+    final data = jsonDecode(responseBody) as Map<String, dynamic>;
+    final token = data['token'];
+    final rawUser = data['user'];
+
+    if (token is! String || rawUser is! Map) {
+      throw const FormatException(
+        'Django returned an unexpected authentication response.',
+      );
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', token);
+
+    return UserSession.fromBackend(Map<String, dynamic>.from(rawUser));
+  }
+
+  String? _readError(String body) {
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is! Map) return null;
+
+      final detail = decoded['detail'];
+      if (detail is String && detail.isNotEmpty) return detail;
+
+      for (final entry in decoded.entries) {
+        final value = entry.value;
+        if (value is List && value.isNotEmpty) {
+          return '${entry.key}: ${value.first}';
+        }
+        if (value is String && value.isNotEmpty) {
+          return '${entry.key}: $value';
+        }
+      }
+    } catch (_) {
+      return null;
+    }
+    return null;
+  }
+
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('auth_token');
