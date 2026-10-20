@@ -45,7 +45,7 @@ class _HomePageState extends State<HomePage> {
 
       // 3. Get actual GPS coordinates
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
 
       // 4. Send to Django backend

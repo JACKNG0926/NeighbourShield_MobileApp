@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../app/api_config.dart';
 
 class AuthRepository {
-  // Use your computer's LAN IP where Django is running
-  final String baseUrl = 'http://192.168.0.5:8000/api';
+  final String baseUrl = ApiConfig.baseUrl;
 
   Future<String> signIn({
     required String email,
