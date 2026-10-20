@@ -6,6 +6,7 @@ import '../../../../core/session/app_session.dart';
 import '../../../../core/session/user_role.dart';
 import '../../../auth/models/user_session.dart';
 import '../../data/incident_repository.dart';
+import '../../../announcements/presentation/pages/urgent_announcements_list_page.dart';
 import '../../../volunteer/data/volunteer_repository.dart';
 import '../../../volunteer/presentation/pages/volunteer_application_page.dart';
 
@@ -389,7 +390,72 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 20),
+              // Urgent Announcement Broadcast Banner
+              InkWell(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => UrgentAnnouncementsListPage(session: widget.session),
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFFECDD3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.dangerColor.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.campaign_rounded,
+                          color: AppTheme.dangerColor,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Urgent Announcements & Broadcasts',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Color(0xFF9F1239),
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Safety directives, evacuations & check-ins',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFFBE123C),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.arrow_forward_ios,
+                        size: 14,
+                        color: Color(0xFF9F1239),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(

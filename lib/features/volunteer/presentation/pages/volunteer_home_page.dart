@@ -5,6 +5,7 @@ import '../../../../app/app_theme.dart';
 import '../../../../core/session/app_session.dart';
 import '../../data/volunteer_incident_repository.dart';
 import '../../models/volunteer_incident.dart';
+import '../../../announcements/presentation/pages/urgent_announcements_list_page.dart';
 import '../../../reports/presentation/pages/community_safety_reports_page.dart';
 import 'volunteer_incident_detail_page.dart';
 
@@ -124,6 +125,14 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => const CommunitySafetyReportsPage(),
+      ),
+    );
+  }
+
+  void _openUrgentAnnouncements() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => UrgentAnnouncementsListPage(session: widget.session),
       ),
     );
   }
@@ -255,11 +264,13 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
                 badgeText: 'Active',
                 onTap: _openCommunityReports,
               ),
-              const _PlannedFeatureCard(
+              _ActionFeatureCard(
                 icon: Icons.campaign_outlined,
                 title: 'Urgent announcements',
                 description:
-                    'Official notices will be integrated in a later phase.',
+                    'Emergency broadcasts, safety directives & mobilization.',
+                badgeText: 'Alert',
+                onTap: _openUrgentAnnouncements,
               ),
               const SizedBox(height: 8),
               const Text(
@@ -466,57 +477,6 @@ class _ActionFeatureCard extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _PlannedFeatureCard extends StatelessWidget {
-  const _PlannedFeatureCard({
-    required this.icon,
-    required this.title,
-    required this.description,
-  });
-
-  final IconData icon;
-  final String title;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE4EBE8)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: AppTheme.primaryColor, size: 26),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: const TextStyle(color: AppTheme.mutedColor),
-                ),
-              ],
-            ),
-          ),
-          const Text(
-            'Planned',
-            style: TextStyle(color: AppTheme.mutedColor, fontSize: 12),
-          ),
-        ],
       ),
     );
   }
