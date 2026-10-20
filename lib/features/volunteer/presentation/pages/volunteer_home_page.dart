@@ -5,6 +5,7 @@ import '../../../../app/app_theme.dart';
 import '../../../../core/session/app_session.dart';
 import '../../data/volunteer_incident_repository.dart';
 import '../../models/volunteer_incident.dart';
+import '../../../reports/presentation/pages/community_safety_reports_page.dart';
 import 'volunteer_incident_detail_page.dart';
 
 class VolunteerHomePage extends StatefulWidget {
@@ -117,6 +118,14 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
     if (acknowledged == true && mounted) {
       await _loadIncidents();
     }
+  }
+
+  void _openCommunityReports() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const CommunitySafetyReportsPage(),
+      ),
+    );
   }
 
   @override
@@ -239,10 +248,12 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
                   ),
                 ),
               const SizedBox(height: 16),
-              const _PlannedFeatureCard(
-                icon: Icons.report_outlined,
+              _ActionFeatureCard(
+                icon: Icons.shield_outlined,
                 title: 'Community safety reports',
-                description: 'Review resident-submitted safety reports.',
+                description: 'Review resident-submitted safety reports & hazards.',
+                badgeText: 'Active',
+                onTap: _openCommunityReports,
               ),
               const _PlannedFeatureCard(
                 icon: Icons.campaign_outlined,
@@ -372,6 +383,89 @@ class _InfoPanel extends StatelessWidget {
             OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _ActionFeatureCard extends StatelessWidget {
+  const _ActionFeatureCard({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.badgeText,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final String badgeText;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE4EBE8)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(15),
+            child: Row(
+              children: [
+                Icon(icon, color: AppTheme.primaryColor, size: 26),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        description,
+                        style: const TextStyle(color: AppTheme.mutedColor),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    badgeText,
+                    style: const TextStyle(
+                      color: AppTheme.primaryColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Icon(
+                  Icons.arrow_forward_ios,
+                  size: 14,
+                  color: AppTheme.mutedColor,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
