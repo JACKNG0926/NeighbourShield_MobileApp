@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../app/api_config.dart';
 import '../models/volunteer_incident.dart';
 
 /// API client for the verified volunteer response queue.
 /// The Django endpoint filters incidents to the volunteer's current radius.
 class VolunteerIncidentRepository {
-  // Keep this aligned with AuthRepository's host address.
-  final String baseUrl = 'http://192.168.0.5:8000/api';
+  final String baseUrl = ApiConfig.baseUrl;
 
   Future<void> updateMyLocation({
     required double latitude,
@@ -72,7 +72,10 @@ class VolunteerIncidentRepository {
     final response = await http.post(
       Uri.parse('$baseUrl/incidents/$incidentId/acknowledge/'),
       headers: _headers(token),
-      body: jsonEncode({'eta_minutes': ?etaMinutes, 'note': note}),
+      body: jsonEncode({
+        if (etaMinutes != null) 'eta_minutes': etaMinutes,
+        'note': note,
+      }),
     );
 
     if (response.statusCode != 200) {

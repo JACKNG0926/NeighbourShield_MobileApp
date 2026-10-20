@@ -3,13 +3,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../app/api_config.dart';
+
 /// API access for volunteer opt-in and profile status.
 ///
 /// PATCH /api/me/ records the user's opt-in only. Django controls the actual
 /// role and verification fields; the client must never grant those itself.
 class VolunteerRepository {
-  // Keep aligned with AuthRepository and IncidentRepository.
-  final String baseUrl = 'http://192.168.0.5:8000/api';
+  final String baseUrl = ApiConfig.baseUrl;
 
   Future<Map<String, dynamic>> submitVolunteerOptIn() async {
     final token = await _getToken();
