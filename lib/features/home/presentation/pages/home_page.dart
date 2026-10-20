@@ -50,11 +50,32 @@ class _HomePageState extends State<HomePage> {
         throw Exception('Location permissions are permanently denied.');
       }
 
-      // 3. Get actual GPS coordinates
-      Position position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
+      // 3. Get coordinates with a timeout and fallback so the app never freezes
+      Position? position;
+      try {
+        position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.medium,
+            timeLimit: Duration(seconds: 5),
+          ),
+        );
+      } catch (_) {
+        // Fallback to last known position if GPS lock times out (common in emulator/indoors)
+        position = await Geolocator.getLastKnownPosition();
+      }
+
+      // If still null (e.g. emulator without simulated GPS), use township fallback
+      position ??= Position(
+        latitude: 3.139000,
+        longitude: 101.686900,
+        timestamp: DateTime.now(),
+        accuracy: 10.0,
+        altitude: 0.0,
+        altitudeAccuracy: 0.0,
+        heading: 0.0,
+        headingAccuracy: 0.0,
+        speed: 0.0,
+        speedAccuracy: 0.0,
       );
 
       // 4. Send to Django backend

@@ -26,6 +26,9 @@ class IncidentRepository {
         'latitude': double.parse(latitude.toStringAsFixed(6)),
         'longitude': double.parse(longitude.toStringAsFixed(6)),
       }),
+    ).timeout(
+      const Duration(seconds: 10),
+      onTimeout: () => throw Exception('Connection timed out. Please check backend server.'),
     );
 
     if (response.statusCode != 201) {
