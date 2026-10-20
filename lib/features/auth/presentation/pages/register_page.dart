@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+
 import '../../../../app/app_theme.dart';
-import '../../../home/presentation/pages/home_page.dart';
+import '../../../../core/session/app_session.dart';
 import '../../data/auth_repository.dart';
 import '../view_models/register_view_model.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+  const RegisterPage({super.key, required this.session});
+
+  final AppSession session;
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -44,7 +47,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _handleRegister() async {
-    final username = await _viewModel.register(
+    final user = await _viewModel.register(
       username: _usernameController.text,
       email: _emailController.text,
       firstName: _firstNameController.text,
@@ -54,13 +57,13 @@ class _RegisterPageState extends State<RegisterPage> {
       password: _passwordController.text,
     );
 
-    if (!mounted || username == null) return;
+    if (!mounted || user == null) return;
 
-    // Navigate to Home Page and remove all previous routes (so they can't hit 'back' to go to register)
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => HomePage(email: username)),
-          (route) => false,
-    );
+    // Registration returns the authoritative profile and token from Django.
+    widget.session.signIn(user);
+
+    // Return to the root SessionGate. It will now display Resident Home.
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   @override
@@ -77,7 +80,10 @@ class _RegisterPageState extends State<RegisterPage> {
           body: SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 26,
+                  vertical: 10,
+                ),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
                   child: Column(
@@ -101,7 +107,10 @@ class _RegisterPageState extends State<RegisterPage> {
                       // Username
                       TextField(
                         controller: _usernameController,
-                        decoration: const InputDecoration(hintText: 'Username', prefixIcon: Icon(Icons.person_outline)),
+                        decoration: const InputDecoration(
+                          hintText: 'Username',
+                          prefixIcon: Icon(Icons.person_outline),
+                        ),
                       ),
                       const SizedBox(height: 16),
 
@@ -109,7 +118,10 @@ class _RegisterPageState extends State<RegisterPage> {
                       TextField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(hintText: 'Email address', prefixIcon: Icon(Icons.email_outlined)),
+                        decoration: const InputDecoration(
+                          hintText: 'Email address',
+                          prefixIcon: Icon(Icons.email_outlined),
+                        ),
                       ),
                       const SizedBox(height: 16),
 
@@ -119,14 +131,18 @@ class _RegisterPageState extends State<RegisterPage> {
                           Expanded(
                             child: TextField(
                               controller: _firstNameController,
-                              decoration: const InputDecoration(hintText: 'First Name'),
+                              decoration: const InputDecoration(
+                                hintText: 'First Name',
+                              ),
                             ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
                             child: TextField(
                               controller: _lastNameController,
-                              decoration: const InputDecoration(hintText: 'Last Name'),
+                              decoration: const InputDecoration(
+                                hintText: 'Last Name',
+                              ),
                             ),
                           ),
                         ],
@@ -137,14 +153,20 @@ class _RegisterPageState extends State<RegisterPage> {
                       TextField(
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(hintText: 'Phone Number', prefixIcon: Icon(Icons.phone_outlined)),
+                        decoration: const InputDecoration(
+                          hintText: 'Phone Number',
+                          prefixIcon: Icon(Icons.phone_outlined),
+                        ),
                       ),
                       const SizedBox(height: 16),
 
                       // Address
                       TextField(
                         controller: _addressController,
-                        decoration: const InputDecoration(hintText: 'Unit Address (e.g. A-12-03)', prefixIcon: Icon(Icons.home_outlined)),
+                        decoration: const InputDecoration(
+                          hintText: 'Unit Address (e.g. A-12-03)',
+                          prefixIcon: Icon(Icons.home_outlined),
+                        ),
                       ),
                       const SizedBox(height: 16),
 
@@ -161,7 +183,11 @@ class _RegisterPageState extends State<RegisterPage> {
                                 _hidePassword = !_hidePassword;
                               });
                             },
-                            icon: Icon(_hidePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                            icon: Icon(
+                              _hidePassword
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                            ),
                           ),
                         ),
                       ),
@@ -170,7 +196,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         const SizedBox(height: 14),
                         Text(
                           _viewModel.errorMessage!,
-                          style: TextStyle(color: Theme.of(context).colorScheme.error),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
                         ),
                       ],
 
@@ -179,15 +207,32 @@ class _RegisterPageState extends State<RegisterPage> {
                       SizedBox(
                         height: 54,
                         child: FilledButton(
-                          onPressed: _viewModel.isLoading ? null : _handleRegister,
+                          onPressed: _viewModel.isLoading
+                              ? null
+                              : _handleRegister,
                           style: FilledButton.styleFrom(
                             backgroundColor: AppTheme.primaryColor,
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
                           ),
                           child: _viewModel.isLoading
-                              ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                              : const Text('Sign Up', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text(
+                                  'Sign Up',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
                       ),
                     ],

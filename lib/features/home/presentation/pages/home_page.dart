@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../../../app/app_theme.dart';
-import '../../../auth/presentation/pages/login_page.dart';
+import '../../../../core/session/app_session.dart';
+import '../../../../core/session/user_role.dart';
+import '../../../auth/models/user_session.dart';
 import '../../data/incident_repository.dart';
+import '../../../volunteer/data/volunteer_repository.dart';
+import '../../../volunteer/presentation/pages/volunteer_application_page.dart';
 
 class HomePage extends StatefulWidget {
   final String email;
+  final AppSession session;
 
-  const HomePage({super.key, required this.email});
+  const HomePage({super.key, required this.email, required this.session});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -16,7 +21,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final IncidentRepository _incidentRepository = IncidentRepository();
+  final VolunteerRepository _volunteerRepository = VolunteerRepository();
   bool _isSendingSos = false;
+  bool _isCheckingVolunteerStatus = false;
 
   Future<void> _handleSosTrigger() async {
     setState(() {
@@ -45,14 +52,13 @@ class _HomePageState extends State<HomePage> {
 
       // 3. Get actual GPS coordinates
       Position position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
 
       // 4. Send to Django backend
-      await _incidentRepository.sendSos(
-        position.latitude,
-        position.longitude,
-      );
+      await _incidentRepository.sendSos(position.latitude, position.longitude);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -81,6 +87,177 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _refreshVolunteerStatus() async {
+    if (_isCheckingVolunteerStatus) return;
+
+    setState(() => _isCheckingVolunteerStatus = true);
+    UserSession? refreshedUser;
+    String? errorMessage;
+
+    try {
+      final profile = await _volunteerRepository.fetchCurrentProfile();
+      refreshedUser = UserSession.fromBackend(profile);
+    } catch (error) {
+      errorMessage = error.toString().replaceFirst('Exception: ', '');
+    }
+
+    if (!mounted) return;
+    setState(() => _isCheckingVolunteerStatus = false);
+
+    if (errorMessage != null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(errorMessage)));
+      return;
+    }
+
+    if (refreshedUser == null) return;
+
+    // If Django now reports an approved role, SessionGate replaces this page
+    // with the appropriate role dashboard. The client never grants the role.
+    if (refreshedUser.role != UserRole.resident) {
+      widget.session.updateCurrentUser(refreshedUser);
+      return;
+    }
+
+    widget.session.updateCurrentUser(refreshedUser);
+
+    final String message;
+    if (refreshedUser.isVolunteerOptedIn &&
+        !refreshedUser.isVerifiedVolunteer) {
+      message =
+          'Your application is still awaiting administrator verification.';
+    } else if (refreshedUser.isVolunteerOptedIn &&
+        refreshedUser.isVerifiedVolunteer) {
+      message =
+          'Your account is verified, but Django has not assigned the Volunteer role yet. Please contact the administrator.';
+    } else {
+      message =
+          'No pending volunteer application was found. You can apply below.';
+    }
+
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Widget _buildPendingVolunteerCard() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8E8),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE4B96A)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.hourglass_top, color: Color(0xFF8A6415), size: 30),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Volunteer application pending',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Your application has been received. You can continue using '
+            'Resident features while a township administrator reviews it. '
+            'After approval, check the status here to open your Volunteer Dashboard.',
+            style: TextStyle(color: AppTheme.mutedColor, height: 1.4),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed:
+                  _isCheckingVolunteerStatus ? null : _refreshVolunteerStatus,
+              icon: _isCheckingVolunteerStatus
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.refresh),
+              label: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Text(
+                  _isCheckingVolunteerStatus
+                      ? 'Checking status...'
+                      : 'Check Application Status',
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVolunteerApplicationCard() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE4EBE8)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(
+                Icons.volunteer_activism_outlined,
+                color: AppTheme.primaryColor,
+                size: 30,
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Help keep your community safe',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Join the volunteer response team and help neighbours during emergencies.',
+            style: TextStyle(color: AppTheme.mutedColor),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) =>
+                        VolunteerApplicationPage(session: widget.session),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.group_add_outlined),
+              label: const Text('Become a Volunteer'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showSosConfirmation(BuildContext context) {
     showDialog<void>(
       context: context,
@@ -94,7 +271,7 @@ class _HomePageState extends State<HomePage> {
           title: const Text('Emergency SOS'),
           content: const Text(
             'Are you sure you want to trigger an emergency alert? '
-                'This will share your current location with local responders.',
+            'This will share your current location with local responders.',
           ),
           actions: [
             TextButton(
@@ -119,6 +296,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = widget.session.currentUser;
+    final hasPendingVolunteerApplication = currentUser != null &&
+        currentUser.role == UserRole.resident &&
+        currentUser.isVolunteerOptedIn;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('NeighbourShield'),
@@ -126,11 +308,7 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             tooltip: 'Sign out',
             icon: const Icon(Icons.logout),
-            onPressed: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const LoginPage()),
-              );
-            },
+            onPressed: widget.session.signOut,
           ),
         ],
       ),
@@ -218,7 +396,9 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(
                       height: 62,
                       child: FilledButton.icon(
-                        onPressed: _isSendingSos ? null : () => _showSosConfirmation(context),
+                        onPressed: _isSendingSos
+                            ? null
+                            : () => _showSosConfirmation(context),
                         style: FilledButton.styleFrom(
                           backgroundColor: AppTheme.dangerColor,
                           foregroundColor: Colors.white,
@@ -231,23 +411,31 @@ class _HomePageState extends State<HomePage> {
                             : const Icon(Icons.sos, size: 30),
                         label: _isSendingSos
                             ? const SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3)
-                        )
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 3,
+                                ),
+                              )
                             : const Text(
-                          'SEND SOS',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                                'SEND SOS',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
+              if (hasPendingVolunteerApplication)
+                _buildPendingVolunteerCard()
+              else
+                _buildVolunteerApplicationCard(),
+              const SizedBox(height: 20),
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(

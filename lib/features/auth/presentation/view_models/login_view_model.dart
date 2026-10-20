@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../data/auth_repository.dart';
+import '../../models/user_session.dart';
 
 class LoginViewModel extends ChangeNotifier {
   LoginViewModel(this._authRepository);
@@ -10,22 +11,15 @@ class LoginViewModel extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
 
-  Future<String?> signIn({
-    required String email,
+  Future<UserSession?> signIn({
+    required String username,
     required String password,
   }) async {
-    final normalizedEmail = email.trim();
-
+    final normalizedUsername = username.trim();
     errorMessage = null;
 
-    if (normalizedEmail.isEmpty || password.isEmpty) {
-      errorMessage = 'Please enter your email and password.';
-      notifyListeners();
-      return null;
-    }
-
-    if (!normalizedEmail.contains('@')) {
-      errorMessage = 'Please enter a valid email address.';
+    if (normalizedUsername.isEmpty || password.isEmpty) {
+      errorMessage = 'Please enter your username and password.';
       notifyListeners();
       return null;
     }
@@ -35,11 +29,11 @@ class LoginViewModel extends ChangeNotifier {
 
     try {
       return await _authRepository.signIn(
-        email: normalizedEmail,
+        username: normalizedUsername,
         password: password,
       );
     } catch (e) {
-      errorMessage = e.toString().replaceAll('Exception: ', '');
+      errorMessage = e.toString().replaceFirst('Exception: ', '');
       return null;
     } finally {
       isLoading = false;
