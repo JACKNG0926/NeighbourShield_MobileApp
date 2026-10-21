@@ -9,6 +9,10 @@ class VolunteerIncident {
     required this.message,
     required this.createdAt,
     required this.escalationLevel,
+    this.acknowledgedByUsername,
+    this.acknowledgedAt,
+    this.resolvedAt,
+    this.resolutionNote = '',
   });
 
   final int id;
@@ -20,6 +24,10 @@ class VolunteerIncident {
   final String message;
   final DateTime createdAt;
   final int escalationLevel;
+  final String? acknowledgedByUsername;
+  final DateTime? acknowledgedAt;
+  final DateTime? resolvedAt;
+  final String resolutionNote;
 
   factory VolunteerIncident.fromJson(Map<String, dynamic> json) {
     final rawUser = json['user'];
@@ -41,6 +49,22 @@ class VolunteerIncident {
         ? DateTime.tryParse(rawCreatedAt)
         : null;
 
+    final rawAckBy = json['acknowledged_by'];
+    String? ackByUsername;
+    if (rawAckBy is Map) {
+      ackByUsername = rawAckBy['username'] as String?;
+    }
+
+    final rawAckAt = json['acknowledged_at'];
+    final acknowledgedAt =
+        rawAckAt is String ? DateTime.tryParse(rawAckAt) : null;
+
+    final rawResolvedAt = json['resolved_at'];
+    final resolvedAt =
+        rawResolvedAt is String ? DateTime.tryParse(rawResolvedAt) : null;
+
+    final resolutionNote = json['resolution_note'] as String? ?? '';
+
     return VolunteerIncident(
       id:
           (json['id'] as num?)?.toInt() ??
@@ -54,6 +78,10 @@ class VolunteerIncident {
       message: json['message'] as String? ?? '',
       createdAt: createdAt ?? DateTime.fromMillisecondsSinceEpoch(0),
       escalationLevel: (json['escalation_level'] as num?)?.toInt() ?? 0,
+      acknowledgedByUsername: ackByUsername,
+      acknowledgedAt: acknowledgedAt,
+      resolvedAt: resolvedAt,
+      resolutionNote: resolutionNote,
     );
   }
 

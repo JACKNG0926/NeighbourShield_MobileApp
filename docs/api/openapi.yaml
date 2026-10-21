@@ -1,0 +1,1424 @@
+openapi: 3.0.2
+info:
+  title: ''
+  version: ''
+paths:
+  /api/users/:
+    get:
+      operationId: listUsers
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+          description: ''
+      tags:
+      - api
+    post:
+      operationId: createUser
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+      tags:
+      - api
+  /api/users/{id}/:
+    get:
+      operationId: retrieveUser
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this user.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateUser
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this user.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateUser
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this user.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyUser
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this user.
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/areas/:
+    get:
+      operationId: listAreas
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Area'
+          description: ''
+      tags:
+      - api
+  /api/areas/{id}/:
+    get:
+      operationId: retrieveArea
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this area.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Area'
+          description: ''
+      tags:
+      - api
+  /api/properties/:
+    get:
+      operationId: listProperties
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Property'
+          description: ''
+      tags:
+      - api
+    post:
+      operationId: createProperty
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Property'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Property'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Property'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+          description: ''
+      tags:
+      - api
+  /api/properties/{id}/:
+    get:
+      operationId: retrieveProperty
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateProperty
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Property'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Property'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Property'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateProperty
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Property'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Property'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Property'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyProperty
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/devices/:
+    get:
+      operationId: listDevices
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+          description: ''
+      tags:
+      - api
+    post:
+      operationId: createDevice
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Device'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Device'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Device'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+          description: ''
+      tags:
+      - api
+  /api/devices/{id}/:
+    get:
+      operationId: retrieveDevice
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateDevice
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Device'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Device'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Device'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateDevice
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Device'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Device'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Device'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyDevice
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/incidents/:
+    get:
+      operationId: listIncidents
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Incident'
+          description: ''
+      tags:
+      - api
+    post:
+      operationId: createIncident
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Incident'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Incident'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Incident'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Incident'
+          description: ''
+      tags:
+      - api
+  /api/incidents/{id}/:
+    get:
+      operationId: retrieveIncident
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this incident.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Incident'
+          description: ''
+      tags:
+      - api
+  /api/posts/:
+    get:
+      operationId: listSafetyPosts
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SafetyPost'
+          description: ''
+      tags:
+      - api
+    post:
+      operationId: createSafetyPost
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SafetyPost'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SafetyPost'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SafetyPost'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SafetyPost'
+          description: ''
+      tags:
+      - api
+  /api/posts/{id}/:
+    get:
+      operationId: retrieveSafetyPost
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this safety post.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SafetyPost'
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateSafetyPost
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this safety post.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SafetyPost'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SafetyPost'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SafetyPost'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SafetyPost'
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateSafetyPost
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this safety post.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SafetyPost'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SafetyPost'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SafetyPost'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SafetyPost'
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroySafetyPost
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this safety post.
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/community-posts/:
+    get:
+      operationId: listCommunityPosts
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommunityPost'
+          description: ''
+      tags:
+      - api
+    post:
+      operationId: createCommunityPost
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommunityPost'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CommunityPost'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CommunityPost'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunityPost'
+          description: ''
+      tags:
+      - api
+  /api/community-posts/{id}/:
+    get:
+      operationId: retrieveCommunityPost
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this community post.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunityPost'
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateCommunityPost
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this community post.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommunityPost'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CommunityPost'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CommunityPost'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunityPost'
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateCommunityPost
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this community post.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommunityPost'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CommunityPost'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CommunityPost'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunityPost'
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyCommunityPost
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this community post.
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/me/:
+    get:
+      operationId: listMyProfiles
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateMyProfile
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          multipart/form-data:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/incidents/{id}/acknowledge/:
+    post:
+      operationId: acknowledgeIncident
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this incident.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Incident'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Incident'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Incident'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Incident'
+          description: ''
+      tags:
+      - api
+  /api/auth/login/:
+    post:
+      operationId: createTokenLogin
+      description: Flutter-friendly login that returns both a token and the mobile
+        profile.
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          multipart/form-data:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/register/:
+    post:
+      operationId: createRegistration
+      description: Residents can create only resident accounts; roles remain admin
+        controlled.
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          multipart/form-data:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/volunteer/apply/:
+    post:
+      operationId: createVolunteerApplication
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          multipart/form-data:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/login/:
+    post:
+      operationId: createAuthToken
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthToken'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AuthToken'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthToken'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+          description: ''
+      tags:
+      - api
+  /api/me/location/:
+    put:
+      operationId: updateMyLocation
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          multipart/form-data:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+\z
+          maxLength: 150
+        role:
+          enum:
+          - resident
+          - volunteer
+          - security
+          - admin
+          type: string
+          readOnly: true
+        phone_number:
+          type: string
+          maxLength: 15
+        unit_address:
+          type: string
+          maxLength: 255
+        area:
+          type: integer
+          nullable: true
+        residence:
+          type: integer
+          nullable: true
+        is_volunteer_opted_in:
+          type: boolean
+        is_verified_volunteer:
+          type: boolean
+          readOnly: true
+      required:
+      - username
+    Area:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        center_latitude:
+          type: string
+          format: decimal
+          multipleOf: 1.0e-06
+          maximum: 1000
+          minimum: -1000
+          nullable: true
+        center_longitude:
+          type: string
+          format: decimal
+          multipleOf: 1.0e-06
+          maximum: 1000
+          minimum: -1000
+          nullable: true
+        radius_m:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+          nullable: true
+      required:
+      - name
+    Property:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        area:
+          type: integer
+        unit_number:
+          type: string
+          maxLength: 100
+        address_line:
+          type: string
+          maxLength: 255
+        postal_code:
+          type: string
+          maxLength: 20
+        property_type:
+          enum:
+          - house
+          - apartment
+          - townhouse
+          - other
+          type: string
+        latitude:
+          type: string
+          format: decimal
+          multipleOf: 1.0e-06
+          maximum: 1000
+          minimum: -1000
+          nullable: true
+        longitude:
+          type: string
+          format: decimal
+          multipleOf: 1.0e-06
+          maximum: 1000
+          minimum: -1000
+          nullable: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        resident_count:
+          type: integer
+          readOnly: true
+      required:
+      - area
+      - unit_number
+      - address_line
+    Device:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        fcm_token:
+          type: string
+          writeOnly: true
+        platform:
+          enum:
+          - android
+          - ios
+          - web
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        last_seen:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - fcm_token
+    Incident:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+              readOnly: true
+            username:
+              type: string
+              description: Required. 150 characters or fewer. Letters, digits and
+                @/./+/-/_ only.
+              pattern: ^[\w.@+-]+\z
+              maxLength: 150
+            role:
+              enum:
+              - resident
+              - volunteer
+              - security
+              - admin
+              type: string
+              readOnly: true
+            phone_number:
+              type: string
+              maxLength: 15
+            unit_address:
+              type: string
+              maxLength: 255
+            area:
+              type: integer
+              nullable: true
+            residence:
+              type: integer
+              nullable: true
+            is_volunteer_opted_in:
+              type: boolean
+            is_verified_volunteer:
+              type: boolean
+              readOnly: true
+          required:
+          - username
+          readOnly: true
+        latitude:
+          type: string
+          format: decimal
+          multipleOf: 1.0e-06
+          maximum: 1000
+          minimum: -1000
+        longitude:
+          type: string
+          format: decimal
+          multipleOf: 1.0e-06
+          maximum: 1000
+          minimum: -1000
+        message:
+          type: string
+          maxLength: 255
+        incident_type:
+          enum:
+          - medical
+          - crime
+          - fire
+          - accident
+          - other
+          type: string
+        status:
+          enum:
+          - pending
+          - acknowledged
+          - escalated
+          - resolved
+          - cancelled
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        escalation_level:
+          type: integer
+          readOnly: true
+        next_escalation_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        acknowledged_by:
+          type: object
+          properties:
+            id:
+              type: integer
+              readOnly: true
+            username:
+              type: string
+              description: Required. 150 characters or fewer. Letters, digits and
+                @/./+/-/_ only.
+              pattern: ^[\w.@+-]+\z
+              maxLength: 150
+            role:
+              enum:
+              - resident
+              - volunteer
+              - security
+              - admin
+              type: string
+              readOnly: true
+            phone_number:
+              type: string
+              maxLength: 15
+            unit_address:
+              type: string
+              maxLength: 255
+            area:
+              type: integer
+              nullable: true
+            residence:
+              type: integer
+              nullable: true
+            is_volunteer_opted_in:
+              type: boolean
+            is_verified_volunteer:
+              type: boolean
+              readOnly: true
+          required:
+          - username
+          readOnly: true
+        acknowledged_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        resolved_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        resolution_note:
+          type: string
+          readOnly: true
+      required:
+      - latitude
+      - longitude
+    SafetyPost:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        author:
+          type: object
+          properties:
+            id:
+              type: integer
+              readOnly: true
+            username:
+              type: string
+              description: Required. 150 characters or fewer. Letters, digits and
+                @/./+/-/_ only.
+              pattern: ^[\w.@+-]+\z
+              maxLength: 150
+            role:
+              enum:
+              - resident
+              - volunteer
+              - security
+              - admin
+              type: string
+              readOnly: true
+            phone_number:
+              type: string
+              maxLength: 15
+            unit_address:
+              type: string
+              maxLength: 255
+            area:
+              type: integer
+              nullable: true
+            residence:
+              type: integer
+              nullable: true
+            is_volunteer_opted_in:
+              type: boolean
+            is_verified_volunteer:
+              type: boolean
+              readOnly: true
+          required:
+          - username
+          readOnly: true
+        post_type:
+          enum:
+          - hazard
+          - announcement
+          - broadcast
+          type: string
+        category:
+          enum:
+          - broken_light
+          - suspicious
+          - road
+          - flood
+          - fire
+          - road_closure
+          - maintenance
+          - other
+          type: string
+        title:
+          type: string
+          maxLength: 150
+        description:
+          type: string
+        latitude:
+          type: string
+          format: decimal
+          multipleOf: 1.0e-06
+          maximum: 1000
+          minimum: -1000
+          nullable: true
+        longitude:
+          type: string
+          format: decimal
+          multipleOf: 1.0e-06
+          maximum: 1000
+          minimum: -1000
+          nullable: true
+        image:
+          type: string
+          format: binary
+          nullable: true
+        area:
+          type: integer
+          nullable: true
+        affected_areas:
+          type: array
+          items:
+            type: integer
+        severity:
+          enum:
+          - info
+          - warning
+          - critical
+          type: string
+        status:
+          enum:
+          - open
+          - in_progress
+          - resolved
+          - rejected
+          type: string
+          readOnly: true
+        is_verified:
+          type: boolean
+          readOnly: true
+        verified_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        resolved_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - title
+      - description
+    CommunityPost:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        author_name:
+          type: string
+          readOnly: true
+        author_area:
+          type: string
+          readOnly: true
+          default: Unknown Area
+        title:
+          type: string
+          maxLength: 200
+        content:
+          type: string
+        is_hidden:
+          type: boolean
+          readOnly: true
+          description: Admin can hide inappropriate posts
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - title
+      - content
+    AuthToken:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        token:
+          type: string
+          readOnly: true
+      required:
+      - username
+      - password

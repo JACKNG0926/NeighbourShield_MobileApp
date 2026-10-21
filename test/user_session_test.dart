@@ -51,5 +51,29 @@ void main() {
         VolunteerApplicationStatus.pending,
       );
     });
+
+    test('parses full profile attributes including address and phone', () {
+      final user = UserSession.fromBackend({
+        'id': 42,
+        'username': 'johndoe',
+        'email': 'john@example.com',
+        'first_name': 'John',
+        'last_name': 'Doe',
+        'phone_number': '+60123456789',
+        'unit_address': 'Block B-12-04',
+        'role': 'resident',
+        'is_volunteer_opted_in': false,
+        'is_verified_volunteer': false,
+      });
+
+      expect(user.id, 42);
+      expect(user.username, 'johndoe');
+      expect(user.email, 'john@example.com');
+      expect(user.firstName, 'John');
+      expect(user.lastName, 'Doe');
+      expect(user.fullName, 'John Doe');
+      expect(user.phoneNumber, '+60123456789');
+      expect(user.unitAddress, 'Block B-12-04');
+    });
   });
 }

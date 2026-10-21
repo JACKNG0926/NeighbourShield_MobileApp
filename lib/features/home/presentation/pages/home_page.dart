@@ -6,7 +6,8 @@ import '../../../../core/session/app_session.dart';
 import '../../../../core/session/user_role.dart';
 import '../../../auth/models/user_session.dart';
 import '../../data/incident_repository.dart';
-import '../../../announcements/presentation/pages/urgent_announcements_list_page.dart';
+import '../../../../core/services/emergency_broadcast_service.dart';
+import '../../../community/presentation/pages/community_board_page.dart';
 import '../../../volunteer/data/volunteer_repository.dart';
 import '../../../volunteer/presentation/pages/volunteer_application_page.dart';
 
@@ -391,12 +392,102 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               const SizedBox(height: 20),
-              // Urgent Announcement Broadcast Banner
+              // Real-Time Emergency Broadcast Channel Banner
               InkWell(
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => UrgentAnnouncementsListPage(session: widget.session),
+                  showModalBottomSheet<void>(
+                    context: context,
+                    backgroundColor: Colors.white,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    ),
+                    builder: (sheetContext) => SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFEF2F2),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.campaign_rounded,
+                                    color: AppTheme.dangerColor,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                const Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Emergency Broadcast Channel',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    Text(
+                                      'High-priority push alert dispatch system',
+                                      style: TextStyle(
+                                        color: AppTheme.mutedColor,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 18),
+                            const Text(
+                              'Broadcasts are dispatched by Township Command via Firebase Cloud Messaging (FCM). Test the severity overlays below:',
+                              style: TextStyle(color: Color(0xFF475569), fontSize: 13, height: 1.4),
+                            ),
+                            const SizedBox(height: 16),
+                            ListTile(
+                              tileColor: const Color(0xFFFEF2F2),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              leading: const Icon(Icons.warning_amber_rounded, color: Colors.red),
+                              title: const Text('Simulate Critical Severity (Full Screen)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                              subtitle: const Text('Covers active screen; requires explicit acknowledgment.', style: TextStyle(fontSize: 11)),
+                              onTap: () {
+                                Navigator.of(sheetContext).pop();
+                                EmergencyBroadcastService.simulate(severity: 'critical');
+                              },
+                            ),
+                            const SizedBox(height: 8),
+                            ListTile(
+                              tileColor: const Color(0xFFFFFBEB),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              leading: const Icon(Icons.error_outline, color: Colors.orange),
+                              title: const Text('Simulate Warning Severity (Bottom Sheet)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                              subtitle: const Text('Amber advisory card with action guidelines.', style: TextStyle(fontSize: 11)),
+                              onTap: () {
+                                Navigator.of(sheetContext).pop();
+                                EmergencyBroadcastService.simulate(severity: 'warning');
+                              },
+                            ),
+                            const SizedBox(height: 8),
+                            ListTile(
+                              tileColor: const Color(0xFFF0FDF4),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              leading: const Icon(Icons.info_outline, color: Colors.blue),
+                              title: const Text('Simulate Info Severity (Top Banner)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                              subtitle: const Text('Floating toast auto-dismissing in 6 seconds.', style: TextStyle(fontSize: 11)),
+                              onTap: () {
+                                Navigator.of(sheetContext).pop();
+                                EmergencyBroadcastService.simulate(severity: 'info');
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   );
                 },
@@ -428,7 +519,7 @@ class _HomePageState extends State<HomePage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Urgent Announcements & Broadcasts',
+                              'Emergency Broadcast Channel',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
@@ -437,7 +528,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             SizedBox(height: 2),
                             Text(
-                              'Safety directives, evacuations & check-ins',
+                              'Live push broadcast alerts & severity router',
                               style: TextStyle(
                                 fontSize: 11,
                                 color: Color(0xFFBE123C),
@@ -450,6 +541,78 @@ class _HomePageState extends State<HomePage> {
                         Icons.arrow_forward_ios,
                         size: 14,
                         color: Color(0xFF9F1239),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              // Community Discussion Board Banner
+              InkWell(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const CommunityBoardPage(),
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFE4EBE8)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.forum_outlined,
+                          color: AppTheme.primaryColor,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Community Discussion Board',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: AppTheme.textColor,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Neighbourhood notices, lost & found, queries',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppTheme.mutedColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.arrow_forward_ios,
+                        size: 14,
+                        color: AppTheme.mutedColor,
                       ),
                     ],
                   ),

@@ -5,7 +5,8 @@ import '../../../../app/app_theme.dart';
 import '../../../../core/session/app_session.dart';
 import '../../data/volunteer_incident_repository.dart';
 import '../../models/volunteer_incident.dart';
-import '../../../announcements/presentation/pages/urgent_announcements_list_page.dart';
+import '../../../../core/services/emergency_broadcast_service.dart';
+import '../../../community/presentation/pages/community_board_page.dart';
 import '../../../reports/presentation/pages/community_safety_reports_page.dart';
 import 'volunteer_incident_detail_page.dart';
 
@@ -129,10 +130,103 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
     );
   }
 
-  void _openUrgentAnnouncements() {
+  void _openEmergencyBroadcasts() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF2F2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.campaign_rounded,
+                      color: AppTheme.dangerColor,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Emergency Broadcast System',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        'FCM high-priority alert dispatcher',
+                        style: TextStyle(
+                          color: AppTheme.mutedColor,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                tileColor: const Color(0xFFFEF2F2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                leading: const Icon(Icons.warning_amber_rounded, color: Colors.red),
+                title: const Text('Simulate Critical Severity (Full Screen)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                subtitle: const Text('Covers screen; mandatory acknowledgment.', style: TextStyle(fontSize: 11)),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  EmergencyBroadcastService.simulate(severity: 'critical');
+                },
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                tileColor: const Color(0xFFFFFBEB),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                leading: const Icon(Icons.error_outline, color: Colors.orange),
+                title: const Text('Simulate Warning Severity (Bottom Sheet)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                subtitle: const Text('Amber advisory card.', style: TextStyle(fontSize: 11)),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  EmergencyBroadcastService.simulate(severity: 'warning');
+                },
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                tileColor: const Color(0xFFF0FDF4),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                leading: const Icon(Icons.info_outline, color: Colors.blue),
+                title: const Text('Simulate Info Severity (Top Toast)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                subtitle: const Text('Auto-dismisses in 6s.', style: TextStyle(fontSize: 11)),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  EmergencyBroadcastService.simulate(severity: 'info');
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _openCommunityBoard() {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => UrgentAnnouncementsListPage(session: widget.session),
+        builder: (_) => const CommunityBoardPage(),
       ),
     );
   }
@@ -266,11 +360,18 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
               ),
               _ActionFeatureCard(
                 icon: Icons.campaign_outlined,
-                title: 'Urgent announcements',
+                title: 'Emergency broadcasts',
                 description:
-                    'Emergency broadcasts, safety directives & mobilization.',
+                    'Real-time push alerts, critical sirens & broadcast channel.',
                 badgeText: 'Alert',
-                onTap: _openUrgentAnnouncements,
+                onTap: _openEmergencyBroadcasts,
+              ),
+              _ActionFeatureCard(
+                icon: Icons.forum_outlined,
+                title: 'Community board',
+                description: 'Post and view neighborhood notices, queries & updates.',
+                badgeText: 'Board',
+                onTap: _openCommunityBoard,
               ),
               const SizedBox(height: 8),
               const Text(
