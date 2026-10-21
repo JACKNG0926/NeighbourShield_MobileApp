@@ -43,6 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/build/
+.gradle/
 
 # Widget Preview related
 .widget_preview/
@@ -52,3 +54,27 @@ app.*.map.json
 
 # Android signing credentials
 /android/key.properties
+
+# Settings & environment
+settings.py
+setting.py
+.env
+
+# Agents & AI configuration
+.agents/
+.gemini/
+.claude/
+GEMINI.md
+AGENTS.md
+CLAUDE.md
+
+# API documentation & OpenAPI schema
+docs/api/
+openapi.yaml
+
+# Markdown files (ignore all except README)
+*.md
+!README.md
+!readme.md
+!**/README.md
+!**/readme.md

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/services/emergency_broadcast_service.dart';
 import '../core/session/app_session.dart';
 import '../core/session/user_role.dart';
 import '../features/auth/presentation/pages/login_page.dart';
@@ -18,6 +19,7 @@ class NeighbourShieldApp extends StatelessWidget {
       title: 'NeighbourShield',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      navigatorKey: EmergencyBroadcastService.navigatorKey,
       home: SessionGate(session: session),
     );
   }

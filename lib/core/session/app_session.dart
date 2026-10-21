@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../features/auth/models/user_session.dart';
+import '../services/local_broadcast_sync_service.dart';
 import 'user_role.dart';
 
 /// In-memory holder for the currently authenticated backend profile.
@@ -14,6 +15,7 @@ class AppSession extends ChangeNotifier {
 
   void signIn(UserSession user) {
     _currentUser = user;
+    LocalBroadcastSyncService.instance.start();
     notifyListeners();
   }
 
@@ -26,6 +28,8 @@ class AppSession extends ChangeNotifier {
 
   void signOut() {
     _currentUser = null;
+    LocalBroadcastSyncService.instance.stop();
     notifyListeners();
   }
 }
+

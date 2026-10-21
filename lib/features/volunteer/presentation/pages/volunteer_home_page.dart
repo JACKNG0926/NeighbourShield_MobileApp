@@ -5,6 +5,7 @@ import '../../../../app/app_theme.dart';
 import '../../../../core/session/app_session.dart';
 import '../../data/volunteer_incident_repository.dart';
 import '../../models/volunteer_incident.dart';
+import '../../../community/presentation/pages/community_board_page.dart';
 import '../../../reports/presentation/pages/community_safety_reports_page.dart';
 import 'volunteer_incident_detail_page.dart';
 
@@ -124,6 +125,14 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => const CommunitySafetyReportsPage(),
+      ),
+    );
+  }
+
+  void _openCommunityBoard() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const CommunityBoardPage(),
       ),
     );
   }
@@ -255,11 +264,12 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
                 badgeText: 'Active',
                 onTap: _openCommunityReports,
               ),
-              const _PlannedFeatureCard(
-                icon: Icons.campaign_outlined,
-                title: 'Urgent announcements',
-                description:
-                    'Official notices will be integrated in a later phase.',
+              _ActionFeatureCard(
+                icon: Icons.forum_outlined,
+                title: 'Community board',
+                description: 'Post and view neighborhood notices, queries & updates.',
+                badgeText: 'Board',
+                onTap: _openCommunityBoard,
               ),
               const SizedBox(height: 8),
               const Text(
@@ -466,57 +476,6 @@ class _ActionFeatureCard extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _PlannedFeatureCard extends StatelessWidget {
-  const _PlannedFeatureCard({
-    required this.icon,
-    required this.title,
-    required this.description,
-  });
-
-  final IconData icon;
-  final String title;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE4EBE8)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: AppTheme.primaryColor, size: 26),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: const TextStyle(color: AppTheme.mutedColor),
-                ),
-              ],
-            ),
-          ),
-          const Text(
-            'Planned',
-            style: TextStyle(color: AppTheme.mutedColor, fontSize: 12),
-          ),
-        ],
       ),
     );
   }
