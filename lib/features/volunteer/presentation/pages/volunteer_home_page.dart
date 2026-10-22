@@ -1,13 +1,22 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+
 import '../../../../app/app_theme.dart';
+import '../../../../core/services/new_incident_detector.dart';
+import '../../../../core/services/siren_service.dart';
 import '../../../../core/session/app_session.dart';
+import '../../../../core/widgets/siren_banner.dart';
 import '../../data/volunteer_incident_repository.dart';
 import '../../models/volunteer_incident.dart';
 import '../../../community/presentation/pages/community_board_page.dart';
 import '../../../reports/presentation/pages/community_safety_reports_page.dart';
 import 'volunteer_incident_detail_page.dart';
+import '../widgets/volunteer_sos_button.dart';
 
 class VolunteerHomePage extends StatefulWidget {
   const VolunteerHomePage({super.key, required this.session});
@@ -23,11 +32,27 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
   bool _isLoading = false;
   String? _error;
   List<VolunteerIncident> _incidents = const [];
+  bool _hasLoadedOnce = false;
+  Timer? _pollTimer;
+  final NewIncidentDetector _detector = NewIncidentDetector();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadIncidents());
+    // Poll so new SOS alerts appear (and the siren rings) without a manual refresh.
+    _pollTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => _loadIncidents(silent: true),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    // Deferred: stopping notifies listeners, which must not happen mid-teardown.
+    Future.microtask(SirenService.instance.stop);
+    super.dispose();
   }
 
   Future<Position> _getCurrentPosition() async {
@@ -78,11 +103,11 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
     }
   }
 
-  Future<void> _loadIncidents() async {
-    if (_isLoading) return;
+  Future<void> _loadIncidents({bool silent = false}) async {
+    if (_isLoading || !mounted) return;
     setState(() {
       _isLoading = true;
-      _error = null;
+      if (!silent) _error = null;
     });
 
     try {
@@ -96,12 +121,22 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
       final incidents = await _repository.fetchNearbyIncidents();
 
       if (!mounted) return;
-      setState(() => _incidents = incidents);
+      if (_detector.update(incidents.map((i) => i.id))) {
+        SirenService.instance.play();
+      }
+      setState(() {
+        _incidents = incidents;
+        _error = null;
+        _hasLoadedOnce = true;
+      });
     } catch (error) {
       if (!mounted) return;
-      setState(() {
-        _error = error.toString().replaceFirst('Exception: ', '');
-      });
+      // A failed background poll keeps the current list instead of showing an error.
+      if (!silent) {
+        setState(() {
+          _error = error.toString().replaceFirst('Exception: ', '');
+        });
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -163,6 +198,7 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
           child: ListView(
             padding: const EdgeInsets.all(18),
             children: [
+              const SirenBanner(),
               Container(
                 padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
@@ -207,6 +243,53 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
                   ],
                 ),
               ),
+                    const SizedBox(height: 16),
+              
+              // ==========================================
+              // PASTE THE VOLUNTEER SOS BUTTON HERE
+              // ==========================================
+              VolunteerSosButton(
+                repository: _repository, 
+                onSent: () => _loadIncidents(), // Changed _refresh to _loadIncidents
+              ),
+              const SizedBox(height: 22),
+              Container(
+                height: 250,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE4EBE8)),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: FlutterMap(
+                    options: MapOptions(
+                      initialCenter: _incidents.isNotEmpty
+                          ? LatLng(_incidents.first.latitude, _incidents.first.longitude)
+                          : const LatLng(3.1390, 101.6869),
+                      initialZoom: 14,
+                    ),
+                    children: [
+                      TileLayer(
+                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        userAgentPackageName: 'com.neighbourshield.app',
+                      ),
+                      MarkerLayer(
+                        markers: _incidents.map((incident) {
+                          return Marker(
+                            point: LatLng(incident.latitude, incident.longitude),
+                            width: 40,
+                            height: 40,
+                            child: GestureDetector(
+                              onTap: () => _openIncident(incident),
+                              child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(height: 22),
               Row(
                 children: [
@@ -230,7 +313,7 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
                 ],
               ),
               const SizedBox(height: 10),
-              if (_isLoading && _incidents.isEmpty)
+              if (_isLoading && !_hasLoadedOnce && _incidents.isEmpty)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 28),
                   child: Center(child: CircularProgressIndicator()),
@@ -337,6 +420,14 @@ class _IncidentCard extends StatelessWidget {
               Text('Status: ${incident.readableStatus}'),
               const SizedBox(height: 4),
               Text('Reported by ${incident.username} · $createdAt'),
+               if (incident.locationNotes.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text('Location: ${incident.locationNotes}', style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.redAccent)),
+              ],
+              if (incident.contactPhone.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text('Phone: ${incident.contactPhone}'),
+              ],
               if (incident.message.trim().isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(

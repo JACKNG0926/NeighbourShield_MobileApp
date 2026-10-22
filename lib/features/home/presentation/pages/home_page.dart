@@ -27,89 +27,60 @@ class _HomePageState extends State<HomePage> {
   bool _isSendingSos = false;
   bool _isCheckingVolunteerStatus = false;
 
+ 
   Future<void> _handleSosTrigger() async {
-    setState(() {
-      _isSendingSos = true;
-    });
+    setState(() => _isSendingSos = true);
 
     try {
-      // 1. Check if location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        throw Exception('Location services are disabled on your device.');
-      }
+      if (!serviceEnabled) throw Exception('Location services are disabled.');
 
-      // 2. Check and request location permissions
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          throw Exception('Location permissions are denied.');
-        }
+        if (permission == LocationPermission.denied) throw Exception('Location denied.');
       }
 
-      if (permission == LocationPermission.deniedForever) {
-        throw Exception('Location permissions are permanently denied.');
-      }
-
-      // 3. Get coordinates with a timeout and fallback so the app never freezes
       Position? position;
       try {
         position = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.medium,
-            timeLimit: Duration(seconds: 5),
-          ),
+          locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium, timeLimit: Duration(seconds: 5)),
         );
       } catch (_) {
-        // Fallback to last known position if GPS lock times out (common in emulator/indoors)
         position = await Geolocator.getLastKnownPosition();
       }
 
-      // If still null (e.g. emulator without simulated GPS), use township fallback
       position ??= Position(
-        latitude: 3.139000,
-        longitude: 101.686900,
-        timestamp: DateTime.now(),
-        accuracy: 10.0,
-        altitude: 0.0,
-        altitudeAccuracy: 0.0,
-        heading: 0.0,
-        headingAccuracy: 0.0,
-        speed: 0.0,
-        speedAccuracy: 0.0,
+        latitude: 3.139000, longitude: 101.686900, timestamp: DateTime.now(),
+        accuracy: 10.0, altitude: 0.0, altitudeAccuracy: 0.0, heading: 0.0, headingAccuracy: 0.0, speed: 0.0, speedAccuracy: 0.0,
       );
 
-      // 4. Send to Django backend
-      await _incidentRepository.sendSos(position.latitude, position.longitude);
+      // FETCH PRE-CONFIGURED DATA FROM USER SESSION
+      final user = widget.session.currentUser;
+
+      // Send to backend instantly
+      await _incidentRepository.sendSos(
+        position.latitude, 
+        position.longitude,
+        phone: user?.phoneNumber,
+        notes: user?.unitAddress,
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('SOS Alert sent successfully! Help is on the way.'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 4),
-          ),
+          const SnackBar(content: Text('SOS Alert sent! Security is on the way.'), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: Colors.red),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isSendingSos = false;
-        });
-      }
+      if (mounted) setState(() => _isSendingSos = false);
     }
   }
-
   Future<void> _refreshVolunteerStatus() async {
     if (_isCheckingVolunteerStatus) return;
 

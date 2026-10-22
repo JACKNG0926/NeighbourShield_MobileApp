@@ -5,8 +5,10 @@ import '../core/session/app_session.dart';
 import '../core/session/user_role.dart';
 import '../features/auth/presentation/pages/login_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
+import '../features/security/presentation/pages/security_home_page.dart';
 import '../features/volunteer/presentation/pages/volunteer_home_page.dart';
 import 'app_theme.dart';
+import 'role_shell.dart';
 
 class NeighbourShieldApp extends StatelessWidget {
   const NeighbourShieldApp({super.key, required this.session});
@@ -42,15 +44,30 @@ class SessionGate extends StatelessWidget {
           return LoginPage(session: session);
         }
 
+        // RoleShell adds the Home | Profile bottom bar. The key resets the tabs
+        // when the role changes (e.g. a resident is approved as a volunteer).
         switch (user.role) {
           case UserRole.resident:
-            return HomePage(
-              email: user.email ?? user.username,
+            return RoleShell(
+              key: ValueKey(user.role),
               session: session,
+              home: HomePage(
+                email: user.email ?? user.username,
+                session: session,
+              ),
             );
           case UserRole.volunteer:
-            return VolunteerHomePage(session: session);
+            return RoleShell(
+              key: ValueKey(user.role),
+              session: session,
+              home: VolunteerHomePage(session: session),
+            );
           case UserRole.security:
+            return RoleShell(
+              key: ValueKey(user.role),
+              session: session,
+              home: SecurityHomePage(session: session),
+            );
           case UserRole.townshipAdmin:
             return _RolePlaceholderPage(role: user.role, session: session);
         }

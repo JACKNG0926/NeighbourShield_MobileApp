@@ -4,6 +4,7 @@ import '../../../../app/app_theme.dart';
 import '../../../../core/session/app_session.dart';
 import '../../data/auth_repository.dart';
 import '../view_models/login_view_model.dart';
+import 'forgot_password_page.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -48,11 +49,6 @@ class _LoginPageState extends State<LoginPage> {
 
     // Use the role and profile returned by Django instead of assuming Resident.
     widget.session.signIn(user);
-  }
-
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -170,11 +166,11 @@ class _LoginPageState extends State<LoginPage> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: () {
-                            _showMessage(
-                              'Password recovery will be added later.',
-                            );
-                          },
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const ForgotPasswordPage(),
+                            ),
+                          ),
                           child: const Text('Forgot password?'),
                         ),
                       ),

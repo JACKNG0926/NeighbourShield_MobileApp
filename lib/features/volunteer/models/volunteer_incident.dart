@@ -13,6 +13,8 @@ class VolunteerIncident {
     this.acknowledgedAt,
     this.resolvedAt,
     this.resolutionNote = '',
+    this.locationNotes = '', // <-- ADDED
+    this.contactPhone = '',  // <-- ADDED
   });
 
   final int id;
@@ -28,6 +30,8 @@ class VolunteerIncident {
   final DateTime? acknowledgedAt;
   final DateTime? resolvedAt;
   final String resolutionNote;
+  final String locationNotes; // <-- ADDED
+  final String contactPhone;  // <-- ADDED
 
   factory VolunteerIncident.fromJson(Map<String, dynamic> json) {
     final rawUser = json['user'];
@@ -82,6 +86,8 @@ class VolunteerIncident {
       acknowledgedAt: acknowledgedAt,
       resolvedAt: resolvedAt,
       resolutionNote: resolutionNote,
+      locationNotes: json['location_notes'] as String? ?? '', // <-- ADDED
+      contactPhone: json['contact_phone'] as String? ?? '',   // <-- ADDED
     );
   }
 
@@ -90,6 +96,7 @@ class VolunteerIncident {
     'crime' => 'Crime / security',
     'fire' => 'Fire',
     'accident' => 'Accident',
+    'backup' => 'Backup request',
     _ => 'Other emergency',
   };
 

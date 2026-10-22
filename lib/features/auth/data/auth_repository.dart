@@ -76,6 +76,27 @@ class AuthRepository {
     );
   }
 
+  /// Asks Django to email a password-reset link. Django answers the same way
+  /// whether or not the email exists.
+  Future<void> requestPasswordReset(String email) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/auth/password-reset/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email.trim()}),
+    );
+
+    if (response.statusCode == 200) return;
+    if (response.statusCode == 400) {
+      throw Exception(_readError(response.body) ?? 'Enter a valid email address.');
+    }
+    if (response.statusCode == 429) {
+      throw Exception('Too many requests. Please try again later.');
+    }
+    throw Exception(
+      'Server error (${response.statusCode}). Please try again later.',
+    );
+  }
+
   Future<UserSession> _saveTokenAndReadUser(String responseBody) async {
     final data = jsonDecode(responseBody) as Map<String, dynamic>;
     final token = data['token'];

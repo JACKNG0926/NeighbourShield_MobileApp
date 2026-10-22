@@ -15,6 +15,7 @@ class UserSession {
     this.isVerifiedVolunteer = false,
   });
 
+  
   final int? id;
   final String username;
   final String? email;

@@ -86,6 +86,120 @@ class VolunteerIncidentRepository {
     }
   }
 
+  /// The volunteer's own SOS. Same endpoint the resident app uses, with the
+  /// phone number and unit address pulled from the volunteer's profile
+  /// (registered details, or whatever they last saved on their profile).
+  Future<void> sendSos({
+    required double latitude,
+    required double longitude,
+    String incidentType = 'other',
+    String message = '',
+  }) async {
+    final token = await _getToken();
+    final contact = await _myContact(token);
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/incidents/'),
+      headers: _headers(token),
+      body: jsonEncode({
+        'latitude': double.parse(latitude.toStringAsFixed(6)),
+        'longitude': double.parse(longitude.toStringAsFixed(6)),
+        'incident_type': incidentType,
+        'message': message,
+        if (contact.unit.isNotEmpty) 'location_notes': contact.unit,
+        if (contact.phone.isNotEmpty) 'contact_phone': contact.phone,
+      }),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception(
+        _readError(response.body) ??
+            'Unable to send SOS (HTTP ${response.statusCode}).',
+      );
+    }
+  }
+
+  /// Responder asks security for backup. Django creates a new incident of
+  /// type 'backup' at the responder's current location.
+  Future<void> requestBackup({
+    required int originalIncidentId,
+    required double latitude,
+    required double longitude,
+  }) async {
+    final token = await _getToken();
+    final contact = await _myContact(token);
+
+    final notes = contact.unit.isEmpty
+        ? 'Volunteer backup request (SOS #$originalIncidentId)'
+        : 'Volunteer backup request (SOS #$originalIncidentId) - ${contact.unit}';
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/incidents/'),
+      headers: _headers(token),
+      body: jsonEncode({
+        'latitude': double.parse(latitude.toStringAsFixed(6)),
+        'longitude': double.parse(longitude.toStringAsFixed(6)),
+        'incident_type': 'backup',
+        'message': 'Backup requested for SOS #$originalIncidentId',
+        'location_notes': notes,
+        if (contact.phone.isNotEmpty) 'contact_phone': contact.phone,
+      }),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception(
+        _readError(response.body) ??
+            'Unable to request backup (HTTP ${response.statusCode}).',
+      );
+    }
+  }
+
+  /// Security / admin closes an incident with an outcome note.
+  Future<void> resolveIncident({
+    required int incidentId,
+    String note = '',
+  }) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/incidents/$incidentId/resolve/'),
+      headers: _headers(token),
+      body: jsonEncode({'note': note}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _readError(response.body) ??
+            'Unable to resolve SOS (HTTP ${response.statusCode}).',
+      );
+    }
+  }
+
+  /// Reads phone_number and unit_address from GET /me/. Never throws: an SOS
+  /// must still go out even if the profile call fails.
+  Future<({String phone, String unit})> _myContact(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/me/'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Token $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map) {
+          return (
+            phone: (decoded['phone_number'] ?? '').toString().trim(),
+            unit: (decoded['unit_address'] ?? '').toString().trim(),
+          );
+        }
+      }
+    } catch (_) {
+      // Fall through to empty details.
+    }
+    return (phone: '', unit: '');
+  }
+
   Map<String, String> _headers(String token) => {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
