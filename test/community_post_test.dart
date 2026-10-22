@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:neighbour_shield_mobile/features/community/models/community_post.dart';
+import 'package:neighbour_shield_mobile/features/community/models/community_post_comment.dart';
 
 void main() {
   group('CommunityPost model', () {
@@ -41,6 +42,33 @@ void main() {
       expect(post.isHidden, false);
     });
 
+    test('parses likes_count, comments_count, and is_liked from JSON', () {
+      final json = {
+        'id': 10,
+        'author_name': 'alice',
+        'author_area': 'Block C',
+        'title': 'Lost Dog',
+        'content': 'Brown poodle lost near gate 3',
+        'is_hidden': false,
+        'created_at': '2026-10-22T10:00:00Z',
+        'likes_count': 7,
+        'comments_count': 3,
+        'is_liked': true,
+      };
+
+      final post = CommunityPost.fromJson(json);
+
+      expect(post.likesCount, 7);
+      expect(post.commentsCount, 3);
+      expect(post.isLiked, true);
+
+      final updated = post.copyWith(likesCount: 8, isLiked: false);
+      expect(updated.likesCount, 8);
+      expect(updated.isLiked, false);
+      expect(updated.commentsCount, 3);
+      expect(updated.title, 'Lost Dog');
+    });
+
     test('timeAgo returns readable formatting', () {
       final now = DateTime.now();
       final justNowPost = CommunityPost(
@@ -75,6 +103,50 @@ void main() {
         createdAt: now.subtract(const Duration(hours: 3)),
       );
       expect(hoursAgoPost.timeAgo, '3h ago');
+    });
+  });
+
+  group('CommunityPostComment model', () {
+    test('parses comment JSON correctly', () {
+      final json = {
+        'id': 101,
+        'post': 2,
+        'author_name': 'bob',
+        'author_role': 'volunteer',
+        'content': 'I saw the cat earlier today near the bench!',
+        'is_hidden': false,
+        'created_at': '2026-10-22T08:30:00Z',
+      };
+
+      final comment = CommunityPostComment.fromJson(json);
+
+      expect(comment.id, 101);
+      expect(comment.postId, 2);
+      expect(comment.authorName, 'bob');
+      expect(comment.authorRole, 'volunteer');
+      expect(comment.content, contains('near the bench'));
+      expect(comment.isHidden, false);
+
+      final map = comment.toJson();
+      expect(map['author_name'], 'bob');
+      expect(map['author_role'], 'volunteer');
+      expect(map['post'], 2);
+    });
+
+    test('handles fallback defaults for comment', () {
+      final json = <String, dynamic>{
+        'id': 102,
+        'content': 'Thanks!',
+      };
+
+      final comment = CommunityPostComment.fromJson(json);
+
+      expect(comment.id, 102);
+      expect(comment.postId, 0);
+      expect(comment.authorName, 'Resident');
+      expect(comment.authorRole, 'resident');
+      expect(comment.content, 'Thanks!');
+      expect(comment.isHidden, false);
     });
   });
 }

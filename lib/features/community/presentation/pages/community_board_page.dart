@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/app_theme.dart';
 import '../../data/community_post_repository.dart';
 import '../../models/community_post.dart';
+import '../widgets/community_post_card.dart';
 import '../widgets/create_community_post_sheet.dart';
 
 class CommunityBoardPage extends StatefulWidget {
@@ -242,7 +243,15 @@ class _CommunityBoardPageState extends State<CommunityBoardPage> {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final post = _posts[index];
-                      return _CommunityPostCard(post: post);
+                      return CommunityPostCard(
+                        post: post,
+                        repository: _repository,
+                        onPostUpdated: (updatedPost) {
+                          setState(() {
+                            _posts[index] = updatedPost;
+                          });
+                        },
+                      );
                     },
                     childCount: _posts.length,
                   ),
@@ -250,108 +259,6 @@ class _CommunityBoardPageState extends State<CommunityBoardPage> {
               ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _CommunityPostCard extends StatelessWidget {
-  const _CommunityPostCard({required this.post});
-
-  final CommunityPost post;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE4EBE8)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Author header
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.12),
-                child: Text(
-                  post.authorName.isNotEmpty
-                      ? post.authorName[0].toUpperCase()
-                      : 'U',
-                  style: const TextStyle(
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      post.authorName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: AppTheme.textColor,
-                      ),
-                    ),
-                    Text(
-                      post.authorArea,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: AppTheme.mutedColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                post.timeAgo,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: AppTheme.mutedColor,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Title
-          Text(
-            post.title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textColor,
-            ),
-          ),
-          const SizedBox(height: 6),
-
-          // Content
-          Text(
-            post.content,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF374151),
-              height: 1.4,
-            ),
-          ),
-        ],
       ),
     );
   }

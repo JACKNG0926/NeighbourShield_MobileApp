@@ -7,6 +7,9 @@ class CommunityPost {
     required this.content,
     required this.isHidden,
     required this.createdAt,
+    this.likesCount = 0,
+    this.commentsCount = 0,
+    this.isLiked = false,
   });
 
   final int id;
@@ -16,6 +19,35 @@ class CommunityPost {
   final String content;
   final bool isHidden;
   final DateTime createdAt;
+  final int likesCount;
+  final int commentsCount;
+  final bool isLiked;
+
+  CommunityPost copyWith({
+    int? id,
+    String? authorName,
+    String? authorArea,
+    String? title,
+    String? content,
+    bool? isHidden,
+    DateTime? createdAt,
+    int? likesCount,
+    int? commentsCount,
+    bool? isLiked,
+  }) {
+    return CommunityPost(
+      id: id ?? this.id,
+      authorName: authorName ?? this.authorName,
+      authorArea: authorArea ?? this.authorArea,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      isHidden: isHidden ?? this.isHidden,
+      createdAt: createdAt ?? this.createdAt,
+      likesCount: likesCount ?? this.likesCount,
+      commentsCount: commentsCount ?? this.commentsCount,
+      isLiked: isLiked ?? this.isLiked,
+    );
+  }
 
   factory CommunityPost.fromJson(Map<String, dynamic> json) {
     DateTime createdDate;
@@ -34,7 +66,25 @@ class CommunityPost {
       content: json['content'] as String? ?? '',
       isHidden: json['is_hidden'] == true,
       createdAt: createdDate,
+      likesCount: json['likes_count'] as int? ?? 0,
+      commentsCount: json['comments_count'] as int? ?? 0,
+      isLiked: json['is_liked'] == true,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'author_name': authorName,
+      'author_area': authorArea,
+      'title': title,
+      'content': content,
+      'is_hidden': isHidden,
+      'created_at': createdAt.toIso8601String(),
+      'likes_count': likesCount,
+      'comments_count': commentsCount,
+      'is_liked': isLiked,
+    };
   }
 
   String get timeAgo {
