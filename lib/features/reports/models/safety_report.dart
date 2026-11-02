@@ -15,6 +15,7 @@ class SafetyReport {
     this.authorRole,
     this.latitude,
     this.longitude,
+    this.imageUrl, // NEW
     this.isVerified = false,
     required this.createdAt,
   });
@@ -30,6 +31,7 @@ class SafetyReport {
   final String? authorRole;
   final double? latitude;
   final double? longitude;
+  final String? imageUrl; // NEW: absolute or relative URL Django returned for the uploaded photo
   final bool isVerified;
   final DateTime createdAt;
 
@@ -68,6 +70,7 @@ class SafetyReport {
       authorRole: authorRole,
       latitude: parseCoord(json['latitude']),
       longitude: parseCoord(json['longitude']),
+      imageUrl: json['image'] as String?,
       isVerified: json['is_verified'] == true,
       createdAt: createdDate,
     );

@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../app/api_config.dart';
+import '../../../core/services/multipart_helper.dart';
 import '../models/community_post.dart';
 import '../models/community_post_comment.dart';
 
@@ -67,22 +69,37 @@ class CommunityPostRepository {
   Future<CommunityPost> createCommunityPost({
     required String title,
     required String content,
+    XFile? image, // NEW: optional photo from ImagePickerField
   }) async {
     final token = await _getToken();
-    final response = await http.post(
-      Uri.parse('$baseUrl/community-posts/'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Token $token',
-      },
-      body: jsonEncode({
-        'title': title.trim(),
-        'content': content.trim(),
-      }),
-    ).timeout(
-      const Duration(seconds: 10),
-      onTimeout: () => throw Exception('Connection timed out while publishing post.'),
-    );
+
+    late http.Response response;
+    if (image != null) {
+      response = await MultipartHelper.post(
+        url: Uri.parse('$baseUrl/community-posts/'),
+        token: token,
+        fields: {'title': title.trim(), 'content': content.trim()},
+        image: image,
+      ).timeout(
+        const Duration(seconds: 20),
+        onTimeout: () => throw Exception('Connection timed out while uploading photo.'),
+      );
+    } else {
+      response = await http.post(
+        Uri.parse('$baseUrl/community-posts/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token $token',
+        },
+        body: jsonEncode({
+          'title': title.trim(),
+          'content': content.trim(),
+        }),
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => throw Exception('Connection timed out while publishing post.'),
+      );
+    }
 
     if (response.statusCode == 201) {
       final decoded = jsonDecode(response.body);

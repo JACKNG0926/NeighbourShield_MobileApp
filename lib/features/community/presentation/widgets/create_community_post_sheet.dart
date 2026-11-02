@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../app/app_theme.dart';
+import '../../../../core/widgets/image_picker_field.dart';
 import '../../data/community_post_repository.dart';
 
 class CreateCommunityPostSheet extends StatefulWidget {
@@ -17,6 +19,7 @@ class _CreateCommunityPostSheetState extends State<CreateCommunityPostSheet> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
+  XFile? _image;
   bool _isSubmitting = false;
 
   @override
@@ -34,6 +37,7 @@ class _CreateCommunityPostSheetState extends State<CreateCommunityPostSheet> {
       await widget.repository.createCommunityPost(
         title: _titleController.text,
         content: _contentController.text,
+        image: _image,
       );
 
       if (!mounted) return;
@@ -139,6 +143,18 @@ class _CreateCommunityPostSheetState extends State<CreateCommunityPostSheet> {
                   }
                   return null;
                 },
+              ),
+              const SizedBox(height: 14),
+
+              // Photo (NEW)
+              const Text(
+                'Photo (optional)',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textColor),
+              ),
+              const SizedBox(height: 8),
+              ImagePickerField(
+                label: 'Add photo',
+                onChanged: (file) => setState(() => _image = file),
               ),
               const SizedBox(height: 20),
 

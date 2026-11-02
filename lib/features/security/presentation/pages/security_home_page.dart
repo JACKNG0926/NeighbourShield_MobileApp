@@ -221,9 +221,24 @@ class _SecurityHomePageState extends State<SecurityHomePage> {
                             urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                             userAgentPackageName: 'com.neighbourshield.app',
                           ),
+                          
+                          // 1. ADD CIRCLE LAYER FOR ACCURACY
+                          CircleLayer(
+                            circles: _incidents.map((incident) {
+                              return CircleMarker(
+                                point: LatLng(incident.latitude, incident.longitude),
+                                radius: 30, // 30 meters
+                                useRadiusInMeter: true,
+                                color: Colors.red.withValues(alpha: 0.15),
+                                borderColor: Colors.red.withValues(alpha: 0.6),
+                                borderStrokeWidth: 1.5,
+                              );
+                            }).toList(),
+                          ),
+
+                          // 2. MARKERS
                           MarkerLayer(
                             markers: [
-                              // 1. BLUE MARKER FOR "YOU ARE HERE"
                               if (_currentUserLocation != null)
                                 Marker(
                                   point: _currentUserLocation!,
@@ -237,7 +252,6 @@ class _SecurityHomePageState extends State<SecurityHomePage> {
                                     child: const Icon(Icons.my_location, color: Colors.blue, size: 24),
                                   ),
                                 ),
-                              // 2. RED/ORANGE MARKERS FOR SOS
                               ..._incidents.map((incident) {
                                 return Marker(
                                   point: LatLng(incident.latitude, incident.longitude),

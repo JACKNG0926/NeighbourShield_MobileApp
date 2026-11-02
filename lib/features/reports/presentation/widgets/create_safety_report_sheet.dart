@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../app/app_theme.dart';
+import '../../../../core/widgets/image_picker_field.dart';
 import '../../data/safety_report_repository.dart';
 
 class CreateSafetyReportSheet extends StatefulWidget {
@@ -23,6 +25,7 @@ class _CreateSafetyReportSheetState extends State<CreateSafetyReportSheet> {
   String _selectedSeverity = 'warning';
   double? _latitude;
   double? _longitude;
+  XFile? _image; // NEW
   bool _isLocating = false;
   bool _isSubmitting = false;
 
@@ -74,7 +77,6 @@ class _CreateSafetyReportSheetState extends State<CreateSafetyReportSheet> {
         position = await Geolocator.getLastKnownPosition();
       }
 
-      // Safe fallback if emulator hasn't set GPS
       position ??= Position(
         latitude: 3.139000,
         longitude: 101.686900,
@@ -125,6 +127,7 @@ class _CreateSafetyReportSheetState extends State<CreateSafetyReportSheet> {
         severity: _selectedSeverity,
         latitude: _latitude,
         longitude: _longitude,
+        image: _image, // NEW
       );
 
       if (!mounted) return;
@@ -162,7 +165,6 @@ class _CreateSafetyReportSheetState extends State<CreateSafetyReportSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Handle
               Center(
                 child: Container(
                   width: 44,
@@ -174,8 +176,6 @@ class _CreateSafetyReportSheetState extends State<CreateSafetyReportSheet> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // Title
               const Text(
                 'New Community Safety Report',
                 style: TextStyle(
@@ -190,8 +190,6 @@ class _CreateSafetyReportSheetState extends State<CreateSafetyReportSheet> {
                 style: TextStyle(color: AppTheme.mutedColor, fontSize: 13),
               ),
               const SizedBox(height: 18),
-
-              // Report Title Field
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(
@@ -207,8 +205,6 @@ class _CreateSafetyReportSheetState extends State<CreateSafetyReportSheet> {
                 },
               ),
               const SizedBox(height: 16),
-
-              // Category Selector
               const Text(
                 'Category',
                 style: TextStyle(
@@ -246,8 +242,6 @@ class _CreateSafetyReportSheetState extends State<CreateSafetyReportSheet> {
                 }).toList(),
               ),
               const SizedBox(height: 16),
-
-              // Severity Selector
               const Text(
                 'Severity Level',
                 style: TextStyle(
@@ -285,8 +279,6 @@ class _CreateSafetyReportSheetState extends State<CreateSafetyReportSheet> {
                 ],
               ),
               const SizedBox(height: 16),
-
-              // Description Field
               TextFormField(
                 controller: _descriptionController,
                 maxLines: 3,
@@ -304,7 +296,23 @@ class _CreateSafetyReportSheetState extends State<CreateSafetyReportSheet> {
               ),
               const SizedBox(height: 16),
 
-              // GPS Attachment Section
+              // ---- NEW: photo attachment ----
+              const Text(
+                'Photo (optional)',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: AppTheme.textColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ImagePickerField(
+                label: 'Add photo',
+                onChanged: (file) => setState(() => _image = file),
+              ),
+              const SizedBox(height: 16),
+              // ---- end NEW ----
+
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -376,8 +384,6 @@ class _CreateSafetyReportSheetState extends State<CreateSafetyReportSheet> {
                 ),
               ),
               const SizedBox(height: 22),
-
-              // Submit Button
               SizedBox(
                 height: 50,
                 child: FilledButton.icon(

@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
       Position? position;
       try {
         position = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium, timeLimit: Duration(seconds: 5)),
+          locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation, timeLimit: Duration(seconds: 15)),
         );
       } catch (_) {
         position = await Geolocator.getLastKnownPosition();
@@ -577,7 +577,7 @@ class _HomePageState extends State<HomePage> {
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE7F1EE),
+                      color: const Color(0xFFE7F1EE),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: const Row(

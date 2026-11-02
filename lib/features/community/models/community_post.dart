@@ -10,6 +10,7 @@ class CommunityPost {
     this.likesCount = 0,
     this.commentsCount = 0,
     this.isLiked = false,
+    this.imageUrl, // NEW
   });
 
   final int id;
@@ -22,6 +23,7 @@ class CommunityPost {
   final int likesCount;
   final int commentsCount;
   final bool isLiked;
+  final String? imageUrl; // NEW: URL Django returned for the uploaded photo, if any
 
   CommunityPost copyWith({
     int? id,
@@ -34,6 +36,7 @@ class CommunityPost {
     int? likesCount,
     int? commentsCount,
     bool? isLiked,
+    String? imageUrl,
   }) {
     return CommunityPost(
       id: id ?? this.id,
@@ -46,6 +49,7 @@ class CommunityPost {
       likesCount: likesCount ?? this.likesCount,
       commentsCount: commentsCount ?? this.commentsCount,
       isLiked: isLiked ?? this.isLiked,
+      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 
@@ -69,6 +73,7 @@ class CommunityPost {
       likesCount: json['likes_count'] as int? ?? 0,
       commentsCount: json['comments_count'] as int? ?? 0,
       isLiked: json['is_liked'] == true,
+      imageUrl: json['image'] as String?,
     );
   }
 
@@ -84,6 +89,7 @@ class CommunityPost {
       'likes_count': likesCount,
       'comments_count': commentsCount,
       'is_liked': isLiked,
+      'image': imageUrl,
     };
   }
 

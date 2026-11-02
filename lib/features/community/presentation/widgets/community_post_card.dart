@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/api_config.dart';
 import '../../../../app/app_theme.dart';
 import '../../data/community_post_repository.dart';
 import '../../models/community_post.dart';
 import '../../models/community_post_comment.dart';
+
+/// Builds a full, loadable URL from whatever Django returned in the `image`
+/// field - it may already be absolute (http://host/media/...) or relative
+/// (/media/...) depending on whether the request had context when serialized.
+String? _resolveImageUrl(String? raw) {
+  if (raw == null || raw.isEmpty) return null;
+  if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+  final origin = ApiConfig.baseUrl.replaceFirst(RegExp(r'/api/?$'), '');
+  return '$origin$raw';
+}
 
 class CommunityPostCard extends StatefulWidget {
   const CommunityPostCard({
@@ -207,6 +218,8 @@ class _CommunityPostCardState extends State<CommunityPostCard>
 
   @override
   Widget build(BuildContext context) {
+    final imageUrl = _resolveImageUrl(_post.imageUrl);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -302,6 +315,36 @@ class _CommunityPostCardState extends State<CommunityPostCard>
                     height: 1.45,
                   ),
                 ),
+
+                // Photo (NEW)
+                if (imageUrl != null) ...[
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      imageUrl,
+                      height: 180,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, progress) {
+                        if (progress == null) return child;
+                        return Container(
+                          height: 180,
+                          alignment: Alignment.center,
+                          color: const Color(0xFFF1F5F9),
+                          child: const CircularProgressIndicator(strokeWidth: 2),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        height: 180,
+                        alignment: Alignment.center,
+                        color: const Color(0xFFF1F5F9),
+                        child: const Icon(Icons.broken_image_outlined,
+                            color: AppTheme.mutedColor, size: 32),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

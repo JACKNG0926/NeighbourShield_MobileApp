@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/services/ble_sos_service.dart';
 import '../core/services/emergency_broadcast_service.dart';
 import '../core/session/app_session.dart';
 import '../core/session/user_role.dart';
@@ -28,20 +29,48 @@ class NeighbourShieldApp extends StatelessWidget {
 }
 
 /// The root page listens for session updates and shows the correct role UI.
-class SessionGate extends StatelessWidget {
+/// Also starts/stops the BLE pendant listener as the user signs in/out, so the
+/// physical SOS button works as soon as someone is logged in, without needing
+/// a separate "connect my pendant" screen.
+class SessionGate extends StatefulWidget {
   const SessionGate({super.key, required this.session});
 
   final AppSession session;
 
   @override
+  State<SessionGate> createState() => _SessionGateState();
+}
+
+class _SessionGateState extends State<SessionGate> {
+  bool _bleStarted = false;
+
+  @override
+  void dispose() {
+    BleSosService.instance.stop();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final session = widget.session;
     return ListenableBuilder(
       listenable: session,
       builder: (context, child) {
         final user = session.currentUser;
 
         if (user == null) {
+          if (_bleStarted) {
+            _bleStarted = false;
+            BleSosService.instance.stop();
+          }
           return LoginPage(session: session);
+        }
+
+        if (!_bleStarted) {
+          _bleStarted = true;
+          // Fire-and-forget: scanning runs in the background, failures are
+          // logged (see BleSosService) and don't block the UI.
+          BleSosService.instance.start(session);
         }
 
         // RoleShell adds the Home | Profile bottom bar. The key resets the tabs

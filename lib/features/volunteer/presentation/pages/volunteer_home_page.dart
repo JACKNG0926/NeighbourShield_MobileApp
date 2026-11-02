@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -36,11 +35,14 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
   Timer? _pollTimer;
   final NewIncidentDetector _detector = NewIncidentDetector();
 
+  // --- Map States ---
+  LatLng? _currentUserLocation;
+  final MapController _mapController = MapController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadIncidents());
-    // Poll so new SOS alerts appear (and the siren rings) without a manual refresh.
     _pollTimer = Timer.periodic(
       const Duration(seconds: 10),
       (_) => _loadIncidents(silent: true),
@@ -50,7 +52,6 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
   @override
   void dispose() {
     _pollTimer?.cancel();
-    // Deferred: stopping notifies listeners, which must not happen mid-teardown.
     Future.microtask(SirenService.instance.stop);
     super.dispose();
   }
@@ -66,39 +67,25 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
       permission = await Geolocator.requestPermission();
     }
     if (permission == LocationPermission.denied) {
-      throw Exception(
-        'Location permission was denied. Allow location to view nearby alerts.',
-      );
+      throw Exception('Location permission was denied. Allow location to view nearby alerts.');
     }
     if (permission == LocationPermission.deniedForever) {
-      throw Exception(
-        'Location permission is permanently denied. Enable it in Android Settings.',
-      );
+      throw Exception('Location permission is permanently denied. Enable it in Android Settings.');
     }
 
     try {
       return await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.medium,
+          accuracy: LocationAccuracy.medium, // Changed to medium for faster load
           timeLimit: Duration(seconds: 5),
         ),
       );
     } catch (_) {
       final lastKnown = await Geolocator.getLastKnownPosition();
-      if (lastKnown != null) {
-        return lastKnown;
-      }
+      if (lastKnown != null) return lastKnown;
       return Position(
-        latitude: 3.139000,
-        longitude: 101.686900,
-        timestamp: DateTime.now(),
-        accuracy: 10.0,
-        altitude: 0.0,
-        altitudeAccuracy: 0.0,
-        heading: 0.0,
-        headingAccuracy: 0.0,
-        speed: 0.0,
-        speedAccuracy: 0.0,
+        latitude: 3.139000, longitude: 101.686900, timestamp: DateTime.now(),
+        accuracy: 10.0, altitude: 0.0, altitudeAccuracy: 0.0, heading: 0.0, headingAccuracy: 0.0, speed: 0.0, speedAccuracy: 0.0,
       );
     }
   }
@@ -111,8 +98,6 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
     });
 
     try {
-      // Refresh the server-side last-known location before querying the queue.
-      // Django uses this location and its configured radius to filter incidents.
       final position = await _getCurrentPosition();
       await _repository.updateMyLocation(
         latitude: position.latitude,
@@ -128,10 +113,10 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
         _incidents = incidents;
         _error = null;
         _hasLoadedOnce = true;
+        _currentUserLocation = LatLng(position.latitude, position.longitude); // Save location
       });
     } catch (error) {
       if (!mounted) return;
-      // A failed background poll keeps the current list instead of showing an error.
       if (!silent) {
         setState(() {
           _error = error.toString().replaceFirst('Exception: ', '');
@@ -158,17 +143,13 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
 
   void _openCommunityReports() {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => const CommunitySafetyReportsPage(),
-      ),
+      MaterialPageRoute<void>(builder: (_) => const CommunitySafetyReportsPage()),
     );
   }
 
   void _openCommunityBoard() {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => const CommunityBoardPage(),
-      ),
+      MaterialPageRoute<void>(builder: (_) => const CommunityBoardPage()),
     );
   }
 
@@ -210,106 +191,122 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
                   children: [
                     const Row(
                       children: [
-                        Icon(
-                          Icons.volunteer_activism_outlined,
-                          color: Colors.white,
-                          size: 34,
-                        ),
+                        Icon(Icons.volunteer_activism_outlined, color: Colors.white, size: 34),
                         SizedBox(width: 12),
-                        Text(
-                          'VOLUNTEER RESPONSE TEAM',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
+                        Text('VOLUNTEER RESPONSE TEAM', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                       ],
                     ),
                     const SizedBox(height: 18),
-                    Text(
-                      'Welcome, $username',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    Text('Welcome, $username', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Nearby SOS alerts are filtered by the server using your latest location and the configured response radius.',
-                      style: TextStyle(color: Color(0xFFE5F3F0), height: 1.4),
-                    ),
+                    const Text('Nearby SOS alerts are filtered by the server using your latest location and the configured response radius.', style: TextStyle(color: Color(0xFFE5F3F0), height: 1.4)),
                   ],
                 ),
               ),
-                    const SizedBox(height: 16),
-              
-              // ==========================================
-              // PASTE THE VOLUNTEER SOS BUTTON HERE
-              // ==========================================
+              const SizedBox(height: 16),
               VolunteerSosButton(
                 repository: _repository, 
-                onSent: () => _loadIncidents(), // Changed _refresh to _loadIncidents
+                onSent: () => _loadIncidents(),
               ),
               const SizedBox(height: 22),
-              Container(
-                height: 250,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE4EBE8)),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: FlutterMap(
-                    options: MapOptions(
-                      initialCenter: _incidents.isNotEmpty
-                          ? LatLng(_incidents.first.latitude, _incidents.first.longitude)
-                          : const LatLng(3.1390, 101.6869),
-                      initialZoom: 14,
+              
+              // --- MAP SECTION ---
+              Stack(
+                children: [
+                  Container(
+                    height: 400,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFE4EBE8)),
                     ),
-                    children: [
-                      TileLayer(
-                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName: 'com.neighbourshield.app',
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: FlutterMap(
+                        mapController: _mapController,
+                        options: MapOptions(
+                          initialCenter: _currentUserLocation ??
+                              (_incidents.isNotEmpty
+                                  ? LatLng(_incidents.first.latitude, _incidents.first.longitude)
+                                  : const LatLng(3.1390, 101.6869)),
+                          initialZoom: 15,
+                        ),
+                        children: [
+                          TileLayer(
+                            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            userAgentPackageName: 'com.neighbourshield.app',
+                          ),
+                          
+                          // 1. ACCURACY CIRCLES FOR SOS
+                          CircleLayer(
+                            circles: _incidents.map((incident) {
+                              return CircleMarker(
+                                point: LatLng(incident.latitude, incident.longitude),
+                                radius: 30, // 30 meters radius
+                                useRadiusInMeter: true,
+                                color: Colors.red.withValues(alpha: 0.15),
+                                borderColor: Colors.red.withValues(alpha: 0.6),
+                                borderStrokeWidth: 1.5,
+                              );
+                            }).toList(),
+                          ),
+
+                          // 2. MARKERS (BLUE FOR YOU, RED FOR SOS)
+                          MarkerLayer(
+                            markers: [
+                              if (_currentUserLocation != null)
+                                Marker(
+                                  point: _currentUserLocation!,
+                                  width: 40,
+                                  height: 40,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.withValues(alpha: 0.2),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.my_location, color: Colors.blue, size: 24),
+                                  ),
+                                ),
+                              ..._incidents.map((incident) {
+                                return Marker(
+                                  point: LatLng(incident.latitude, incident.longitude),
+                                  width: 40,
+                                  height: 40,
+                                  child: GestureDetector(
+                                    onTap: () => _openIncident(incident),
+                                    child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+                                  ),
+                                );
+                              }),
+                            ],
+                          ),
+                        ],
                       ),
-                      MarkerLayer(
-                        markers: _incidents.map((incident) {
-                          return Marker(
-                            point: LatLng(incident.latitude, incident.longitude),
-                            width: 40,
-                            height: 40,
-                            child: GestureDetector(
-                              onTap: () => _openIncident(incident),
-                              child: const Icon(Icons.location_on, color: Colors.red, size: 40),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                  
+                  // 3. RECENTER BUTTON
+                  if (_currentUserLocation != null)
+                    Positioned(
+                      bottom: 16,
+                      right: 16,
+                      child: FloatingActionButton.small(
+                        backgroundColor: Colors.white,
+                        onPressed: () {
+                          _mapController.move(_currentUserLocation!, 16);
+                        },
+                        child: const Icon(Icons.my_location, color: Colors.blue),
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(height: 22),
+              
               Row(
                 children: [
                   const Expanded(
-                    child: Text(
-                      'Nearby SOS alerts',
-                      style: TextStyle(
-                        color: AppTheme.textColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                      ),
-                    ),
+                    child: Text('Nearby SOS alerts', style: TextStyle(color: AppTheme.textColor, fontWeight: FontWeight.bold, fontSize: 20)),
                   ),
-                  Text(
-                    '${_incidents.length} active',
-                    style: const TextStyle(
-                      color: AppTheme.mutedColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  Text('${_incidents.length} active', style: const TextStyle(color: AppTheme.mutedColor, fontWeight: FontWeight.w600)),
                 ],
               ),
               const SizedBox(height: 10),
@@ -354,15 +351,6 @@ class _VolunteerHomePageState extends State<VolunteerHomePage> {
                 badgeText: 'Board',
                 onTap: _openCommunityBoard,
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'Location-based SOS data is visible only to authorised responders within the configured radius. Acknowledge an alert only when you are able to respond.',
-                style: TextStyle(
-                  color: AppTheme.mutedColor,
-                  fontSize: 12,
-                  height: 1.35,
-                ),
-              ),
             ],
           ),
         ),
@@ -398,19 +386,14 @@ class _IncidentCard extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.warning_amber_rounded,
-                    color: isEscalated
-                        ? AppTheme.dangerColor
-                        : AppTheme.primaryColor,
+                    color: isEscalated ? AppTheme.dangerColor : AppTheme.primaryColor,
                     size: 28,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'SOS #${incident.id} · ${incident.readableType}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ),
                   const Icon(Icons.chevron_right),
@@ -430,11 +413,7 @@ class _IncidentCard extends StatelessWidget {
               ],
               if (incident.message.trim().isNotEmpty) ...[
                 const SizedBox(height: 8),
-                Text(
-                  incident.message,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                Text(incident.message, maxLines: 2, overflow: TextOverflow.ellipsis),
               ],
             ],
           ),
@@ -474,11 +453,7 @@ class _InfoPanel extends StatelessWidget {
           const SizedBox(height: 9),
           Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: AppTheme.mutedColor, height: 1.4),
-          ),
+          Text(message, textAlign: TextAlign.center, style: const TextStyle(color: AppTheme.mutedColor, height: 1.4)),
           if (actionLabel != null && onAction != null) ...[
             const SizedBox(height: 12),
             OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
@@ -529,40 +504,25 @@ class _ActionFeatureCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        title,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
-                      Text(
-                        description,
-                        style: const TextStyle(color: AppTheme.mutedColor),
-                      ),
+                      Text(description, style: const TextStyle(color: AppTheme.mutedColor)),
                     ],
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: AppTheme.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     badgeText,
-                    style: const TextStyle(
-                      color: AppTheme.primaryColor,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(color: AppTheme.primaryColor, fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(width: 6),
-                const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 14,
-                  color: AppTheme.mutedColor,
-                ),
+                const Icon(Icons.arrow_forward_ios, size: 14, color: AppTheme.mutedColor),
               ],
             ),
           ),

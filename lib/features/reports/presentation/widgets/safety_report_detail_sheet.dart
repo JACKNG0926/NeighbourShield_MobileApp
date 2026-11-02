@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../app/api_config.dart';
 import '../../../../app/app_theme.dart';
 import '../../models/safety_report.dart';
+
+String? _resolveImageUrl(String? raw) {
+  if (raw == null || raw.isEmpty) return null;
+  if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+  final origin = ApiConfig.baseUrl.replaceFirst(RegExp(r'/api/?$'), '');
+  return '$origin$raw';
+}
 
 class SafetyReportDetailSheet extends StatelessWidget {
   const SafetyReportDetailSheet({super.key, required this.report});
@@ -11,6 +19,8 @@ class SafetyReportDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final imageUrl = _resolveImageUrl(report.imageUrl);
+
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -158,6 +168,37 @@ class SafetyReportDetailSheet extends StatelessWidget {
                 ),
             ],
           ),
+
+          // Photo (NEW)
+          if (imageUrl != null) ...[
+            const SizedBox(height: 16),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                imageUrl,
+                height: 200,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return Container(
+                    height: 200,
+                    alignment: Alignment.center,
+                    color: const Color(0xFFF1F5F9),
+                    child: const CircularProgressIndicator(strokeWidth: 2),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) => Container(
+                  height: 200,
+                  alignment: Alignment.center,
+                  color: const Color(0xFFF1F5F9),
+                  child: const Icon(Icons.broken_image_outlined,
+                      color: AppTheme.mutedColor, size: 32),
+                ),
+              ),
+            ),
+          ],
+
           const Divider(height: 28),
 
           // Description Section
